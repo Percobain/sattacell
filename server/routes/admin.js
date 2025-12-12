@@ -1,0 +1,179 @@
+const express = require('express');
+const router = express.Router();
+const { body, validationResult } = require('express-validator');
+const { authenticate } = require('../middleware/auth');
+const { requireAdmin, verifyAdminPassword } = require('../middleware/admin');
+const Market = require('../models/Market');
+const User = require('../models/User');
+const Transaction = require('../models/Transaction');
+const { settleMarket } = require('../services/settlementService');
+const { AppError } = require('../utils/errors');
+
+/**
+ * POST /api/admin/login
+ * Verify admin password and create session
+ */
+router.post('/login', verifyAdminPassword, authenticate, async (req, res, next) => {
+  try {
+    if (!req.user.isAdmin) {
+      throw new AppError('User is not an admin', 403);
+    }
+    res.json({ success: true, message: 'Admin access granted' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/admin/users/search
+ * Search for a user by email
+ */
+router.get('/users/search', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ user: { _id: user._id, email: user.email, balance: user.balance } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/admin/grant-tokens
+ * Grant tokens to a user (accepts userId or email)
+ */
+router.post(
+  '/grant-tokens',
+  authenticate,
+  requireAdmin,
+  [
+    body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be a positive number'),
+  ],
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { userId, email, amount } = req.body;
+      
+      let targetUser;
+      if (userId) {
+        targetUser = await User.findById(userId);
+      } else if (email) {
+        targetUser = await User.findOne({ email: email.toLowerCase() });
+      } else {
+        return res.status(400).json({ error: 'Either userId or email is required' });
+      }
+      if (!targetUser) {
+        throw new AppError('User not found', 404);
+      }
+
+      const session = await require('mongoose').startSession();
+      session.startTransaction();
+
+      try {
+        targetUser.balance += parseFloat(amount);
+        await targetUser.save({ session });
+
+        await Transaction.create([{
+          userId: targetUser._id,
+          type: 'admin_grant',
+          amount: parseFloat(amount),
+          adminId: req.user._id,
+        }], { session });
+
+        await session.commitTransaction();
+
+        res.json({
+          success: true,
+          user: {
+            _id: targetUser._id,
+            email: targetUser.email,
+            balance: targetUser.balance,
+          },
+        });
+      } catch (error) {
+        await session.abortTransaction();
+        throw error;
+      } finally {
+        session.endSession();
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/admin/settle-market
+ * Settle a market
+ */
+router.post(
+  '/settle-market',
+  authenticate,
+  requireAdmin,
+  [
+    body('marketId').isMongoId().withMessage('Valid marketId is required'),
+    body('winningOutcomeIndex')
+      .isInt({ min: 0 })
+      .withMessage('Valid winningOutcomeIndex is required'),
+  ],
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { marketId, winningOutcomeIndex } = req.body;
+
+      const result = await settleMarket(marketId, winningOutcomeIndex);
+
+      res.json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/admin/stats
+ * Get admin statistics
+ */
+router.get('/stats', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const totalMarkets = await Market.countDocuments();
+    const openMarkets = await Market.countDocuments({ status: 'open' });
+    const settledMarkets = await Market.countDocuments({ status: 'settled' });
+    const totalUsers = await User.countDocuments();
+    const totalTransactions = await Transaction.countDocuments();
+
+    res.json({
+      stats: {
+        totalMarkets,
+        openMarkets,
+        settledMarkets,
+        totalUsers,
+        totalTransactions,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+module.exports = router;
+
