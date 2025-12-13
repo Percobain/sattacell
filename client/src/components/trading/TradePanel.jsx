@@ -82,6 +82,9 @@ export function TradePanel({ marketId }) {
       setSuccess(`Successfully ${tradeType === 'buy' ? 'bought' : 'sold'} ${shares} shares!`);
       await refetchMarket();
 
+      // Dispatch event to refresh the probability chart
+      window.dispatchEvent(new CustomEvent('tradeCompleted'));
+
       // Clear success after 3 seconds
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {

@@ -30,7 +30,7 @@ export function MarketCard({ market }) {
 
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="group-hover:text-glow-blue transition-all">
+            <CardTitle>
               {market.title}
             </CardTitle>
             <Badge variant={getStatusVariant(market.status)}>
@@ -51,14 +51,14 @@ export function MarketCard({ market }) {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-mono text-foreground">{market.outcomes[topOutcome]}</span>
-                <span className="text-sm font-mono font-bold text-primary text-glow-blue">
+                <span className="text-sm font-mono font-bold text-primary">
                   {(market.probabilities[topOutcome] * 100).toFixed(1)}%
                 </span>
               </div>
               {/* Neon progress bar */}
               <div className="w-full bg-secondary/50 rounded-full h-2 overflow-hidden border border-primary/20">
                 <div
-                  className="bg-gradient-to-r from-primary to-neon-green h-2 rounded-full transition-all duration-500 shadow-glow-sm"
+                  className="bg-gradient-to-r from-primary to-neon-green h-2 rounded-full transition-all duration-500"
                   style={{ width: `${market.probabilities[topOutcome] * 100}%` }}
                 />
               </div>

@@ -17,13 +17,11 @@ export function Home() {
             <img
               src={logo}
               alt="SattaCell Logo"
-              className="h-24 w-24 object-contain drop-shadow-[0_0_15px_rgba(0,212,255,0.5)]"
+              className="h-24 w-24 object-contain"
             />
-            {/* Glow ring */}
-            <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl -z-10"></div>
           </div>
           <div>
-            <h1 className="text-4xl font-display font-bold text-primary text-glow-blue tracking-wider">
+            <h1 className="text-4xl font-display font-bold text-primary tracking-wider">
               SATTACELL
             </h1>
             <div className="flex items-center gap-2 mt-1">
@@ -38,7 +36,7 @@ export function Home() {
         <div className="flex items-center gap-4">
           {isAuthenticated && (
             <>
-              <div className="text-sm font-mono border border-primary/30 px-4 py-2 bg-card/50 glow-blue">
+              <div className="text-sm font-mono border border-primary/30 px-4 py-2 bg-card/50">
                 <div className="text-primary">{userData?.email}</div>
                 <div className="text-neon-green text-xs">
                   ¥ {userData?.balance?.toFixed(2)} <span className="text-muted-foreground">TOKENS</span>

@@ -9,7 +9,7 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-primary/50 bg-primary/20 text-primary shadow-glow-sm",
+          "border-primary/50 bg-primary/20 text-primary",
         secondary:
           "border-secondary/50 bg-secondary/50 text-secondary-foreground",
         destructive:
@@ -22,7 +22,7 @@ const badgeVariants = cva(
         warning:
           "border-neon-orange/50 bg-neon-orange/10 text-neon-orange shadow-[0_0_5px_hsl(30_100%_50%_/_0.3)]",
         neon:
-          "border-primary bg-primary/20 text-primary shadow-glow-sm animate-pulse-glow",
+          "border-primary bg-primary/20 text-primary",
         "neon-red":
           "border-accent bg-accent/20 text-accent shadow-[0_0_5px_hsl(14_100%_50%_/_0.3)]",
       },

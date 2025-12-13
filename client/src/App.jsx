@@ -6,17 +6,11 @@ import { MarketPage } from "./pages/MarketPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { AdminPage } from "./pages/AdminPage";
 import { AuthCallback } from "./pages/AuthCallback";
-import TargetCursor from "./components/ui/TargetCursor";
 import Dither from "./components/ui/Dither";
 
 function App() {
   return (
     <Router>
-      <TargetCursor
-        spinDuration={2}
-        hideDefaultCursor={true}
-        parallaxOn={true}
-      />
 
       {/* Dither background */}
       <div className="fixed inset-0 z-0 opacity-30">

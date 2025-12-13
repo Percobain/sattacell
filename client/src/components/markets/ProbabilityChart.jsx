@@ -16,7 +16,28 @@ import {
 } from "recharts";
 import { TrendingUp, Clock } from "lucide-react";
 
-const COLORS = ['#00d4ff', '#00ff9f', '#ff6b35', '#ff3d00', '#8b5cf6', '#06b6d4'];
+const COLORS = [
+    '#00d4ff', // cyan
+    '#ff6b35', // orange
+    '#00ff9f', // green
+    '#ff3d00', // red-orange
+    '#8b5cf6', // purple
+    '#ffd700', // gold
+    '#ff1493', // deep pink
+    '#32cd32', // lime green
+    '#ff4500', // orange red
+    '#1e90ff', // dodger blue
+    '#ff69b4', // hot pink
+    '#00ced1', // dark turquoise
+    '#9932cc', // dark orchid
+    '#adff2f', // green yellow
+    '#dc143c', // crimson
+    '#00bfff', // deep sky blue
+    '#ff8c00', // dark orange
+    '#7b68ee', // medium slate blue
+    '#3cb371', // medium sea green
+    '#f0e68c', // khaki
+];
 
 // CSS for line drawing animation
 const chartStyles = `
@@ -53,8 +74,18 @@ export function ProbabilityChart({ marketId, outcomes }) {
 
     useEffect(() => {
         fetchHistory();
-        const interval = setInterval(fetchHistory, 30000);
-        return () => clearInterval(interval);
+        const interval = setInterval(fetchHistory, 20000);
+
+        // Listen for trade completed events to refresh the chart
+        const handleTradeCompleted = () => {
+            fetchHistory();
+        };
+        window.addEventListener('tradeCompleted', handleTradeCompleted);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('tradeCompleted', handleTradeCompleted);
+        };
     }, [marketId]);
 
     const fetchHistory = async () => {
@@ -267,18 +298,19 @@ export function ProbabilityChart({ marketId, outcomes }) {
                             axisLine={{ stroke: 'hsl(187 100% 50% / 0.2)' }}
                         />
                         <YAxis
-                            domain={[0, 100]}
+                            domain={['auto', 'auto']}
                             tick={{ fontSize: 10, fill: 'hsl(200 20% 60%)' }}
                             tickLine={{ stroke: 'hsl(187 100% 50% / 0.2)' }}
                             axisLine={{ stroke: 'hsl(187 100% 50% / 0.2)' }}
-                            tickFormatter={(value) => `${value}%`}
+                            tickFormatter={(value) => `${value.toFixed(0)}%`}
+                            padding={{ top: 10, bottom: 10 }}
                         />
                         <Tooltip content={<CustomTooltip />} />
                         <Legend wrapperStyle={{ fontSize: '12px', fontFamily: 'monospace' }} />
                         {outcomes.map((outcome, idx) => (
                             <Line
                                 key={outcome}
-                                type="stepAfter"
+                                type="monotone"
                                 dataKey={outcome}
                                 stroke={COLORS[idx % COLORS.length]}
                                 strokeWidth={2}
