@@ -38,15 +38,19 @@ router.post('/callback', async (req, res, next) => {
       user = await User.create({
         firebaseUID: googleUser.uid,
         email: googleUser.email,
+        name: googleUser.name || googleUser.email.split('@')[0],
         balance: 1000,
         isAdmin: false,
       });
     } else {
-      // Update email if changed
+      // Update email and name if changed
       if (user.email !== googleUser.email) {
         user.email = googleUser.email;
-        await user.save();
       }
+      if (googleUser.name && user.name !== googleUser.name) {
+        user.name = googleUser.name;
+      }
+      await user.save();
     }
 
     res.json({
@@ -56,6 +60,7 @@ router.post('/callback', async (req, res, next) => {
       user: {
         _id: user._id,
         email: user.email,
+        name: user.name,
         balance: user.balance,
         isAdmin: user.isAdmin,
       },
@@ -76,6 +81,7 @@ router.get('/me', authenticate, async (req, res, next) => {
       user: {
         _id: user._id,
         email: user.email,
+        name: user.name,
         balance: user.balance,
         isAdmin: user.isAdmin,
       },

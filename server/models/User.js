@@ -14,6 +14,10 @@ const userSchema = new mongoose.Schema({
     index: true,
     lowercase: true,
   },
+  name: {
+    type: String,
+    default: '',
+  },
   balance: {
     type: Number,
     default: 1000,

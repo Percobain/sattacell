@@ -22,15 +22,19 @@ async function authenticate(req, res, next) {
       user = await User.create({
         firebaseUID: decodedToken.uid,
         email: decodedToken.email,
+        name: decodedToken.name || decodedToken.email.split('@')[0],
         balance: 1000,
         isAdmin: false,
       });
     } else {
-      // Update email if changed
+      // Update email and name if changed
       if (user.email !== decodedToken.email) {
         user.email = decodedToken.email;
-        await user.save();
       }
+      if (decodedToken.name && user.name !== decodedToken.name) {
+        user.name = decodedToken.name;
+      }
+      await user.save();
     }
     
     req.user = user;
