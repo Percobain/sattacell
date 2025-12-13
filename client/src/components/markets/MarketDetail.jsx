@@ -147,7 +147,7 @@ export function MarketDetail({ marketId }) {
                 <LineChart className="h-3 w-3 sm:h-4 sm:w-4" />
                 {showChart ? 'Hide' : 'History'}
               </Button>
-              <Button
+              {/* <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowAnalytics(!showAnalytics)}
@@ -155,7 +155,7 @@ export function MarketDetail({ marketId }) {
               >
                 <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
                 {showAnalytics ? 'Hide' : 'Analytics'}
-              </Button>
+              </Button> */}
             </div>
           </div>
           {market.probabilities && (
