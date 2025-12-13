@@ -6,7 +6,7 @@ export default {
 		extend: {
 			fontFamily: {
 				mono: ['JetBrains Mono', 'monospace'],
-				display: ['Orbitron', 'sans-serif'],
+				display: ['VT323', 'monospace'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
