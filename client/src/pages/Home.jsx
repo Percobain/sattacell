@@ -56,11 +56,9 @@ export function Home() {
               </Link>
             </>
           )}
-          {userData?.isAdmin && (
-            <Link to="/admin">
-              <Button variant="neon-red" size="sm" className="md:size-default">Admin</Button>
-            </Link>
-          )}
+          <Link to="/admin">
+            <Button variant="neon-red" size="sm" className="md:size-default">Admin</Button>
+          </Link>
           <LoginButton />
         </div>
       </div>

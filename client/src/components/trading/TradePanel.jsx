@@ -214,11 +214,11 @@ export function TradePanel({ marketId }) {
             </Label>
             <Tooltip
               content={
-                <div className="space-y-2 text-xs">
-                  <p className="font-semibold text-primary mb-1">Current Market Probability:</p>
+                <div className="space-y-1.5 text-xs">
+                  <p className="font-semibold text-primary">Current Market Probability:</p>
                   <p>{(currentProbability * 100).toFixed(1)}% chance this outcome will win</p>
-                  <p className="mt-2 pt-2 border-t border-primary/20">
-                    Select the outcome you believe will happen. The probability is calculated based on current market activity and automatically updates as people trade.
+                  <p className="pt-1.5 border-t border-primary/20 text-xs">
+                    Probability updates automatically as people trade.
                   </p>
                 </div>
               }

@@ -9,16 +9,68 @@ const Tooltip = React.forwardRef(({
   ...props 
 }, ref) => {
   const [isVisible, setIsVisible] = React.useState(false);
+  const tooltipRef = React.useRef(null);
+  const containerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (isVisible && tooltipRef.current && containerRef.current) {
+      const tooltip = tooltipRef.current;
+      const container = containerRef.current;
+      
+      // Use requestAnimationFrame to ensure DOM is updated and measurements are accurate
+      requestAnimationFrame(() => {
+        const rect = container.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const padding = 8;
+        
+        if (side === "top" || side === "bottom") {
+          // Calculate where center of tooltip would be (in viewport coordinates)
+          const containerCenterX = rect.left + (rect.width / 2);
+          const tooltipHalfWidth = tooltipRect.width / 2;
+          const tooltipLeftEdge = containerCenterX - tooltipHalfWidth;
+          const tooltipRightEdge = containerCenterX + tooltipHalfWidth;
+          
+          // Reset positioning
+          tooltip.style.left = '';
+          tooltip.style.right = '';
+          tooltip.style.transform = '';
+          
+          // Check for left overflow
+          if (tooltipLeftEdge < padding) {
+            // Position tooltip with left edge at padding
+            const leftOffset = padding - rect.left;
+            tooltip.style.left = `${leftOffset}px`;
+            tooltip.style.transform = 'none';
+          }
+          // Check for right overflow
+          else if (tooltipRightEdge > viewportWidth - padding) {
+            // Position tooltip with right edge at viewport - padding
+            const rightOffset = viewportWidth - padding - rect.right;
+            tooltip.style.right = `${rightOffset}px`;
+            tooltip.style.left = 'auto';
+            tooltip.style.transform = 'none';
+          }
+          // Center normally (default CSS handles this)
+        }
+        
+        // Always ensure tooltip doesn't exceed viewport width
+        const maxWidth = Math.min(280, viewportWidth - (padding * 2));
+        tooltip.style.maxWidth = `${maxWidth}px`;
+      });
+    }
+  }, [isVisible, side]);
 
   const sideClasses = {
-    top: "bottom-full left-1/2 -translate-x-1/2 mb-2",
-    bottom: "top-full left-1/2 -translate-x-1/2 mt-2",
-    left: "right-full top-1/2 -translate-y-1/2 mr-2",
-    right: "left-full top-1/2 -translate-y-1/2 ml-2",
+    top: "bottom-full mb-2",
+    bottom: "top-full mt-2",
+    left: "right-full mr-2",
+    right: "left-full ml-2",
   };
 
   return (
     <div
+      ref={containerRef}
       className="relative inline-block"
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
@@ -27,10 +79,11 @@ const Tooltip = React.forwardRef(({
       {children}
       {isVisible && (
         <div
-          ref={ref}
+          ref={tooltipRef}
           className={cn(
-            "absolute z-50 w-72 max-w-sm p-3 bg-popover border border-primary/30 rounded-lg shadow-lg",
-            "text-sm text-popover-foreground font-mono",
+            "absolute z-50 w-56 max-w-[min(calc(100vw-16px),280px)] p-2.5 bg-popover border border-primary/30 rounded-lg shadow-lg",
+            "text-xs text-popover-foreground font-mono break-words overflow-wrap-anywhere",
+            "left-1/2 -translate-x-1/2",
             sideClasses[side],
             className
           )}
