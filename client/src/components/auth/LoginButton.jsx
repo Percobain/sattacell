@@ -17,8 +17,8 @@ export function LoginButton() {
   }
 
   return (
-    <Button onClick={signIn}>
-      Sign in with Google (@somaiya.edu)
+    <Button onClick={signIn} variant="neon-red">
+      Sign in with Google
     </Button>
   );
 }

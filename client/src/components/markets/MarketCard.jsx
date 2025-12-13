@@ -3,52 +3,62 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 
 export function MarketCard({ market }) {
-  const getStatusColor = (status) => {
+  const getStatusVariant = (status) => {
     switch (status) {
       case 'open':
-        return 'default';
+        return 'success';
       case 'closed':
-        return 'secondary';
+        return 'neon-red';
       case 'settled':
-        return 'outline';
+        return 'secondary';
       default:
         return 'default';
     }
   };
 
   const topOutcome = market.probabilities
-    ? market.probabilities.reduce((max, prob, idx) => 
-        prob > market.probabilities[max] ? idx : max, 0
-      )
+    ? market.probabilities.reduce((max, prob, idx) =>
+      prob > market.probabilities[max] ? idx : max, 0
+    )
     : 0;
 
   return (
     <Link to={`/markets/${market._id}`}>
-      <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+      <Card className="cursor-pointer h-full group relative overflow-hidden">
+        {/* Corner accent */}
+        <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-primary/20 to-transparent"></div>
+
         <CardHeader>
-          <div className="flex items-start justify-between">
-            <CardTitle className="text-lg">{market.title}</CardTitle>
-            <Badge variant={getStatusColor(market.status)}>
-              {market.status}
+          <div className="flex items-start justify-between gap-2">
+            <CardTitle className="group-hover:text-glow-blue transition-all">
+              {market.title}
+            </CardTitle>
+            <Badge variant={getStatusVariant(market.status)}>
+              {market.status.toUpperCase()}
             </Badge>
           </div>
           <CardDescription className="line-clamp-2">
-            {market.description}
+            // {market.description}
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           {market.probabilities && market.probabilities.length > 0 && (
-            <div className="space-y-2">
-              <div className="text-sm font-medium">Top Outcome:</div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-neon-red text-xs font-mono">[LEAD]</span>
+                <span className="text-xs text-muted-foreground font-mono">TOP_OUTCOME:</span>
+              </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm">{market.outcomes[topOutcome]}</span>
-                <span className="text-sm font-semibold">
+                <span className="text-sm font-mono text-foreground">{market.outcomes[topOutcome]}</span>
+                <span className="text-sm font-mono font-bold text-primary text-glow-blue">
                   {(market.probabilities[topOutcome] * 100).toFixed(1)}%
                 </span>
               </div>
-              <div className="w-full bg-secondary rounded-full h-2">
+              {/* Neon progress bar */}
+              <div className="w-full bg-secondary/50 rounded-full h-2 overflow-hidden border border-primary/20">
                 <div
-                  className="bg-primary h-2 rounded-full transition-all"
+                  className="bg-gradient-to-r from-primary to-neon-green h-2 rounded-full transition-all duration-500 shadow-glow-sm"
                   style={{ width: `${market.probabilities[topOutcome] * 100}%` }}
                 />
               </div>
@@ -59,4 +69,3 @@ export function MarketCard({ market }) {
     </Link>
   );
 }
-
