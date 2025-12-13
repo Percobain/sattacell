@@ -3,6 +3,7 @@ import { LoginButton } from "@/components/auth/LoginButton";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import logo from "/logo.png"; // Add this import
 
 export function Home() {
   const { isAuthenticated, userData } = useAuth();
@@ -10,9 +11,16 @@ export function Home() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold">SattaCell</h1>
-          <p className="text-muted-foreground mt-2">Prediction Markets Platform</p>
+        <div className="flex items-center gap-3"> {/* Changed to flex with gap */}
+          <img 
+            src={logo} 
+            alt="SattaCell Logo" 
+            className="h-28 w-28 object-contain"
+          />
+          <div>
+            <h1 className="text-4xl font-bold">SattaCell</h1>
+            <p className="text-muted-foreground mt-2">Prediction Markets Platform</p>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           {isAuthenticated && (
@@ -42,4 +50,3 @@ export function Home() {
     </div>
   );
 }
-
