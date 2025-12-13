@@ -32,8 +32,8 @@ function App() {
         />
       </div>
 
-      <div className="min-h-screen relative overflow-hidden z-10">
-        <div className="container mx-auto p-6 relative">
+      <div className="min-h-screen relative overflow-hidden z-10 flex flex-col">
+        <div className="container mx-auto p-6 relative flex-1">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/markets/:id" element={<MarketPage />} />
@@ -42,6 +42,17 @@ function App() {
             <Route path="/auth/callback" element={<AuthCallback />} />
           </Routes>
         </div>
+
+        {/* Footer */}
+        <footer className="py-6 text-center border-t border-primary/20">
+          <p className="text-sm text-muted-foreground font-mono">
+            made with <span className="text-red-500">❤</span> by{' '}
+            <span className="text-primary">NGM</span> •{' '}
+            <span className="text-primary">GNG</span> •{' '}
+            <span className="text-primary">KRT</span> •{' '}
+            <span className="text-primary">BNG</span>
+          </p>
+        </footer>
       </div>
       <Analytics />
       <Clarity />

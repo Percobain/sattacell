@@ -3,36 +3,79 @@ import { useMarket } from "@/hooks/useMarkets";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { TradeHistory } from "./TradeHistory";
 import { MarketAnalytics } from "./MarketAnalytics";
-import { 
-  TrendingUp, 
-  BarChart3, 
-  ChevronDown, 
-  ChevronUp,
+import { ProbabilityChart } from "./ProbabilityChart";
+import { Skeleton, SkeletonProbabilities } from "@/components/ui/Skeleton";
+import {
+  TrendingUp,
+  BarChart3,
   Target,
   Activity,
-  Trophy
+  Trophy,
+  LineChart,
+  History,
+  Wallet
 } from "lucide-react";
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 export function MarketDetail({ marketId }) {
   const { market, loading, error } = useMarket(marketId);
   const [showHistory, setShowHistory] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showChart, setShowChart] = useState(true);
 
+  // Loading state with skeleton
   if (loading) {
-    return <div className="p-8">Loading market...</div>;
+    return (
+      <div className="space-y-4">
+        {/* Hero skeleton */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-7 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+              <Skeleton className="h-6 w-16 rounded-sm" />
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Probabilities skeleton */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-8 w-28" />
+            </div>
+            <Skeleton className="h-4 w-48 mt-2" />
+          </CardHeader>
+          <CardContent>
+            <SkeletonProbabilities />
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-8 text-destructive">Error: {error}</div>;
+    return (
+      <Card className="border-destructive/50">
+        <CardContent className="p-8 text-center">
+          <div className="text-destructive font-mono">[ERROR] {error}</div>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (!market) {
-    return <div className="p-8">Market not found</div>;
+    return (
+      <Card>
+        <CardContent className="p-8 text-center text-muted-foreground">
+          Market not found
+        </CardContent>
+      </Card>
+    );
   }
 
   const chartData = market.outcomes.map((outcome, idx) => ({
@@ -45,133 +88,136 @@ export function MarketDetail({ marketId }) {
 
   // Find leading outcome
   const leadingIndex = market.probabilities
-    ? market.probabilities.reduce((maxIdx, prob, idx) => 
-        prob > market.probabilities[maxIdx] ? idx : maxIdx, 0
-      )
+    ? market.probabilities.reduce((maxIdx, prob, idx) =>
+      prob > market.probabilities[maxIdx] ? idx : maxIdx, 0
+    )
     : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Hero Card - Market Info */}
       <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="text-2xl">{market.title}</CardTitle>
-              <CardDescription className="mt-2">{market.description}</CardDescription>
+        <CardHeader className="pb-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <CardTitle className="text-xl md:text-2xl leading-tight">
+                {market.title}
+              </CardTitle>
+              <CardDescription className="mt-2 font-mono text-sm">
+                {market.description}
+              </CardDescription>
             </div>
-            <Badge variant={market.status === 'open' ? 'default' : 'secondary'}>
-              {market.status}
+            <Badge
+              variant={market.status === 'open' ? 'success' : market.status === 'settled' ? 'secondary' : 'neon-red'}
+              className="shrink-0"
+            >
+              {market.status.toUpperCase()}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
-          {market.status === 'settled' && market.winningOutcome !== null && (
-            <div className="mb-4 p-4 bg-primary/10 rounded-lg">
-              <div className="font-semibold">Winner: {market.outcomes[market.winningOutcome]}</div>
+
+        {market.status === 'settled' && market.winningOutcome !== null && (
+          <CardContent className="pt-0">
+            <div className="p-4 bg-neon-green/10 border border-neon-green/30 rounded-lg flex items-center gap-3">
+              <Trophy className="h-5 w-5 text-neon-green" />
+              <div>
+                <span className="text-sm text-muted-foreground">Winner:</span>
+                <span className="ml-2 font-semibold text-neon-green">{market.outcomes[market.winningOutcome]}</span>
+              </div>
             </div>
-          )}
-        </CardContent>
+          </CardContent>
+        )}
       </Card>
 
+      {/* Probabilities Card - Simplified */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
-              <CardTitle>Current Probabilities</CardTitle>
+              <CardTitle className="text-lg">Current Probabilities</CardTitle>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowAnalytics(!showAnalytics)}
-              className="flex items-center gap-2"
-            >
-              {showAnalytics ? (
-                <>
-                  <ChevronUp className="h-4 w-4" />
-                  Hide Analytics
-                </>
-              ) : (
-                <>
-                  <BarChart3 className="h-4 w-4" />
-                  Show Analytics
-                </>
-              )}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowChart(!showChart)}
+                className="gap-2 text-xs"
+              >
+                <LineChart className="h-4 w-4" />
+                {showChart ? 'Hide' : 'History'}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAnalytics(!showAnalytics)}
+                className="gap-2 text-xs"
+              >
+                <BarChart3 className="h-4 w-4" />
+                {showAnalytics ? 'Hide' : 'Analytics'}
+              </Button>
+            </div>
           </div>
           {market.probabilities && (
-            <CardDescription className="flex items-center gap-2 mt-2">
-              <Target className="h-4 w-4" />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+              <Target className="h-4 w-4 text-primary" />
               <span>
-                Leading: <strong>{market.outcomes[leadingIndex]}</strong> ({market.probabilities[leadingIndex] * 100}%)
+                Leading: <span className="text-primary font-semibold">{market.outcomes[leadingIndex]}</span>
+                <span className="text-primary ml-1">({(market.probabilities[leadingIndex] * 100).toFixed(1)}%)</span>
               </span>
-            </CardDescription>
+            </div>
           )}
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+        <CardContent className="space-y-4">
+          {/* Probability History Chart - Collapsible */}
+          {showChart && (
+            <ProbabilityChart marketId={marketId} outcomes={market.outcomes} />
+          )}
 
-            <div className="space-y-2">
-              {market.outcomes.map((outcome, idx) => {
-                const isLeading = idx === leadingIndex;
-                return (
-                  <div 
-                    key={idx} 
-                    className={`flex items-center justify-between p-3 border rounded-lg ${
-                      isLeading ? 'bg-primary/5 border-primary/20' : ''
+          {/* Outcome Progress Bars - Always Visible */}
+          <div className="space-y-2">
+            {market.outcomes.map((outcome, idx) => {
+              const isLeading = idx === leadingIndex;
+              const probability = market.probabilities?.[idx] || 0;
+              return (
+                <div
+                  key={idx}
+                  className={`flex items-center justify-between p-3 border rounded-lg transition-all ${isLeading
+                    ? 'bg-primary/5 border-primary/30'
+                    : 'border-primary/10 hover:border-primary/20'
                     }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {isLeading && <Trophy className="h-4 w-4 text-yellow-500" />}
-                      <span className={`font-medium ${isLeading ? 'text-primary' : ''}`}>
-                        {outcome}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-32 bg-secondary rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full transition-all ${
-                            isLeading ? 'bg-primary' : 'bg-primary/60'
-                          }`}
-                          style={{ width: `${(market.probabilities[idx] || 0) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-semibold w-16 text-right">
-                        {(market.probabilities[idx] * 100).toFixed(1)}%
-                      </span>
-                    </div>
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    {isLeading && <Trophy className="h-4 w-4 text-yellow-500 shrink-0" />}
+                    <span className={`font-mono text-sm truncate ${isLeading ? 'text-primary' : ''}`}>
+                      {outcome}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="w-24 md:w-32 bg-secondary/50 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-500 ${isLeading
+                          ? 'bg-gradient-to-r from-primary to-neon-green'
+                          : 'bg-primary/60'
+                          }`}
+                        style={{ width: `${probability * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-mono font-semibold w-14 text-right text-primary">
+                      {(probability * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Analytics Section */}
+          {/* Analytics Section - Expandable */}
           {showAnalytics && (
-            <div className="mt-6 pt-6 border-t">
+            <div className="pt-4 border-t border-primary/20">
               <div className="flex items-center gap-2 mb-4">
                 <Activity className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold">Market Analytics</h3>
+                <h3 className="text-lg font-display">Market Analytics</h3>
               </div>
               <MarketAnalytics marketId={marketId} outcomes={market.outcomes} />
             </div>
@@ -179,62 +225,63 @@ export function MarketDetail({ marketId }) {
         </CardContent>
       </Card>
 
-      {/* Your Positions / Trade History Section with Switch */}
+      {/* Positions / Trade History - Tabbed */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle>
-              {showHistory ? "Trade History" : "Your Positions"}
-            </CardTitle>
-            {hasUserPosition && (
-              <div className="flex items-center gap-3">
-                <span className={`text-sm ${!showHistory ? "font-medium" : "text-muted-foreground"}`}>
-                  Your Positions
-                </span>
-                <label className="inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={showHistory}
-                    onChange={(e) => setShowHistory(e.target.checked)}
-                  />
-                  <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
-                </label>
-                <span className={`text-sm ${showHistory ? "font-medium" : "text-muted-foreground"}`}>
-                  Trade History
-                </span>
-              </div>
-            )}
-            {!hasUserPosition && (
-              <CardTitle>Trade History</CardTitle>
-            )}
+            <div className="flex items-center gap-4">
+              <Button
+                variant={!showHistory ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setShowHistory(false)}
+                className="gap-2"
+              >
+                <Wallet className="h-4 w-4" />
+                Positions
+              </Button>
+              <Button
+                variant={showHistory ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setShowHistory(true)}
+                className="gap-2"
+              >
+                <History className="h-4 w-4" />
+                History
+              </Button>
+            </div>
           </div>
-          <CardDescription>
-            {showHistory || !hasUserPosition
-              ? "All trades in this market" 
-              : "Your current positions"}
+          <CardDescription className="mt-2">
+            {showHistory ? "Recent trades in this market" : "Your current holdings"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {showHistory || !hasUserPosition ? (
+          {showHistory ? (
             <TradeHistory marketId={marketId} outcomes={market.outcomes} />
+          ) : hasUserPosition ? (
+            <div className="space-y-2">
+              {Object.entries(market.userPosition).map(([outcomeIndex, shares]) => (
+                shares > 0 && (
+                  <div
+                    key={outcomeIndex}
+                    className="flex justify-between items-center p-3 border border-primary/20 rounded-lg bg-primary/5"
+                  >
+                    <span className="font-mono text-sm">{market.outcomes[parseInt(outcomeIndex)]}</span>
+                    <span className="font-mono font-semibold text-primary">
+                      {shares.toFixed(2)} <span className="text-xs text-muted-foreground">shares</span>
+                    </span>
+                  </div>
+                )
+              ))}
+            </div>
           ) : (
-            hasUserPosition && (
-              <div className="space-y-2">
-                {Object.entries(market.userPosition).map(([outcomeIndex, shares]) => (
-                  shares > 0 && (
-                    <div key={outcomeIndex} className="flex justify-between p-2 border rounded">
-                      <span>{market.outcomes[parseInt(outcomeIndex)]}</span>
-                      <span className="font-semibold">{shares.toFixed(2)} shares</span>
-                    </div>
-                  )
-                ))}
-              </div>
-            )
+            <div className="text-center py-8 text-muted-foreground">
+              <Wallet className="h-10 w-10 mx-auto mb-3 opacity-50" />
+              <p className="font-mono text-sm">No positions yet</p>
+              <p className="text-xs mt-1">Buy shares to make a prediction</p>
+            </div>
           )}
         </CardContent>
       </Card>
     </div>
   );
 }
-

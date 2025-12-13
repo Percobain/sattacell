@@ -6,15 +6,26 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/services/api";
 import { useMarket } from "@/hooks/useMarkets";
+import { SkeletonTradePanel } from "@/components/ui/Skeleton";
+import {
+  TrendingUp,
+  TrendingDown,
+  HelpCircle,
+  Zap,
+  AlertCircle,
+  CheckCircle2,
+  Wallet
+} from "lucide-react";
 
 export function TradePanel({ marketId }) {
   const { isAuthenticated, userData } = useAuth();
-  const { market, refetch: refetchMarket } = useMarket(marketId);
+  const { market, loading, refetch: refetchMarket } = useMarket(marketId);
   const [selectedOutcome, setSelectedOutcome] = useState(0);
   const [shares, setShares] = useState("");
   const [tradeType, setTradeType] = useState("buy");
-  const [loading, setLoading] = useState(false);
+  const [tradeLoading, setTradeLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [previewCost, setPreviewCost] = useState(null);
 
   useEffect(() => {
@@ -29,8 +40,6 @@ export function TradePanel({ marketId }) {
     if (!market || !shares || parseFloat(shares) <= 0) return;
 
     try {
-      // For preview, we'd need a preview endpoint, but for now we'll estimate
-      // based on current price
       const currentPrice = market.probabilities[selectedOutcome];
       const estimatedCost = parseFloat(shares) * currentPrice;
       setPreviewCost(estimatedCost);
@@ -50,8 +59,9 @@ export function TradePanel({ marketId }) {
       return;
     }
 
-    setLoading(true);
+    setTradeLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
       if (tradeType === "buy") {
@@ -69,23 +79,34 @@ export function TradePanel({ marketId }) {
       }
 
       setShares("");
+      setSuccess(`Successfully ${tradeType === 'buy' ? 'bought' : 'sold'} ${shares} shares!`);
       await refetchMarket();
-      // Trigger user data refresh by reloading the page
-      // In a production app, you'd update the userData state directly
-      window.location.reload();
+
+      // Clear success after 3 seconds
+      setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       setError(err.message || "Trade failed");
     } finally {
-      setLoading(false);
+      setTradeLoading(false);
     }
   };
+
+  // Loading state
+  if (loading) {
+    return <SkeletonTradePanel />;
+  }
 
   if (!market || market.status !== "open") {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-muted-foreground">
-            {market?.status === "settled" ? "This market has been settled" : "Market is not open for trading"}
+          <div className="text-center py-4">
+            <AlertCircle className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
+            <div className="text-muted-foreground font-mono text-sm">
+              {market?.status === "settled"
+                ? "This market has been settled"
+                : "Market is not open for trading"}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -94,26 +115,48 @@ export function TradePanel({ marketId }) {
 
   const userPosition = market.userPosition?.[selectedOutcome] || 0;
   const canSell = tradeType === "sell" && userPosition <= 0;
+  const currentProbability = market.probabilities[selectedOutcome];
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Trade</CardTitle>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5 text-primary" />
+            Trade
+          </CardTitle>
+          {userData && (
+            <div className="flex items-center gap-1 text-xs font-mono text-muted-foreground">
+              <Wallet className="h-3 w-3" />
+              {userData.balance?.toFixed(2)}
+            </div>
+          )}
+        </div>
         <CardDescription>
           Buy or sell shares in this market
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Sign in prompt */}
         {!isAuthenticated && (
-          <div className="p-4 bg-muted rounded-lg text-sm">
-            Please sign in to trade
+          <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg text-sm flex items-center gap-2">
+            <HelpCircle className="h-4 w-4 text-primary shrink-0" />
+            <span>Sign in to start trading</span>
           </div>
         )}
 
+        {/* Outcome selector */}
         <div className="space-y-2">
-          <Label>Select Outcome</Label>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+              Select Outcome
+            </Label>
+            <span className="text-xs font-mono text-primary">
+              {(currentProbability * 100).toFixed(1)}%
+            </span>
+          </div>
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+            className="cursor-target flex h-10 w-full rounded-md border border-primary/30 bg-background/50 px-3 py-2 text-sm font-mono focus:border-primary focus:outline-none"
             value={selectedOutcome}
             onChange={(e) => setSelectedOutcome(parseInt(e.target.value))}
           >
@@ -125,34 +168,44 @@ export function TradePanel({ marketId }) {
           </select>
         </div>
 
+        {/* Trade type buttons */}
         <div className="space-y-2">
-          <Label>Trade Type</Label>
-          <div className="flex gap-2">
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+            Trade Type
+          </Label>
+          <div className="grid grid-cols-2 gap-2">
             <Button
               variant={tradeType === "buy" ? "default" : "outline"}
               onClick={() => setTradeType("buy")}
-              className="flex-1"
+              className="gap-2"
             >
+              <TrendingUp className="h-4 w-4" />
               Buy
             </Button>
             <Button
               variant={tradeType === "sell" ? "default" : "outline"}
               onClick={() => setTradeType("sell")}
-              className="flex-1"
+              className="gap-2"
             >
+              <TrendingDown className="h-4 w-4" />
               Sell
             </Button>
           </div>
         </div>
 
+        {/* Position info for sell */}
         {tradeType === "sell" && userPosition > 0 && (
-          <div className="p-3 bg-muted rounded-lg text-sm">
-            You own {userPosition.toFixed(2)} shares of {market.outcomes[selectedOutcome]}
+          <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm font-mono">
+            <span className="text-muted-foreground">You own:</span>
+            <span className="ml-2 text-primary font-semibold">{userPosition.toFixed(2)} shares</span>
           </div>
         )}
 
+        {/* Shares input */}
         <div className="space-y-2">
-          <Label>Number of Shares</Label>
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+            Number of Shares
+          </Label>
           <Input
             type="number"
             min="0.01"
@@ -160,37 +213,74 @@ export function TradePanel({ marketId }) {
             value={shares}
             onChange={(e) => setShares(e.target.value)}
             placeholder="0.00"
+            className="font-mono"
           />
         </div>
 
+        {/* Cost preview */}
         {previewCost !== null && (
-          <div className="p-3 bg-muted rounded-lg">
-            <div className="text-sm">
-              Estimated cost: <span className="font-semibold">{previewCost.toFixed(2)} tokens</span>
+          <div className="p-3 bg-secondary/30 border border-primary/20 rounded-lg space-y-1">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Estimated cost:</span>
+              <span className="font-mono font-semibold text-primary">
+                {previewCost.toFixed(2)} tokens
+              </span>
             </div>
-            {userData && (
-              <div className="text-xs text-muted-foreground mt-1">
-                Your balance: {userData.balance.toFixed(2)} tokens
+            {tradeType === "buy" && shares && (
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Potential payout if wins:</span>
+                <span className="font-mono text-neon-green">
+                  {parseFloat(shares).toFixed(2)} tokens
+                </span>
               </div>
             )}
           </div>
         )}
 
+        {/* Error message */}
         {error && (
-          <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
+          <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm flex items-center gap-2 text-destructive">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {error}
           </div>
         )}
 
+        {/* Success message */}
+        {success && (
+          <div className="p-3 bg-neon-green/10 border border-neon-green/30 rounded-lg text-sm flex items-center gap-2 text-neon-green">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            {success}
+          </div>
+        )}
+
+        {/* Submit button */}
         <Button
           onClick={handleTrade}
-          disabled={loading || !isAuthenticated || canSell || !shares || parseFloat(shares) <= 0}
-          className="w-full"
+          disabled={tradeLoading || !isAuthenticated || canSell || !shares || parseFloat(shares) <= 0}
+          className="w-full gap-2"
         >
-          {loading ? "Processing..." : tradeType === "buy" ? "Buy Shares" : "Sell Shares"}
+          {tradeLoading ? (
+            <>Processing...</>
+          ) : tradeType === "buy" ? (
+            <>
+              <TrendingUp className="h-4 w-4" />
+              Buy Shares
+            </>
+          ) : (
+            <>
+              <TrendingDown className="h-4 w-4" />
+              Sell Shares
+            </>
+          )}
         </Button>
+
+        {/* Helper text for new users */}
+        {isAuthenticated && !shares && (
+          <p className="text-xs text-center text-muted-foreground">
+            💡 Pick the outcome you think will win, enter shares, and click Buy
+          </p>
+        )}
       </CardContent>
     </Card>
   );
 }
-
