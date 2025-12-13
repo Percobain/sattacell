@@ -152,9 +152,29 @@ export function ProbabilityChart({ marketId, outcomes }) {
     const filterByTimeRange = (data, range) => {
         if (range === 'all' || data.length === 0) return data;
         const now = Date.now();
-        const cutoff = range === '24h'
-            ? now - 24 * 60 * 60 * 1000
-            : now - 7 * 24 * 60 * 60 * 1000;
+        let cutoff;
+        switch (range) {
+            case '1m':
+                cutoff = now - 60 * 1000;
+                break;
+            case '15m':
+                cutoff = now - 15 * 60 * 1000;
+                break;
+            case '30m':
+                cutoff = now - 30 * 60 * 1000;
+                break;
+            case '1h':
+                cutoff = now - 60 * 60 * 1000;
+                break;
+            case '24h':
+                cutoff = now - 24 * 60 * 60 * 1000;
+                break;
+            case '7d':
+                cutoff = now - 7 * 24 * 60 * 60 * 1000;
+                break;
+            default:
+                return data;
+        }
         return data.filter(d => d.timestamp >= cutoff);
     };
 
@@ -209,10 +229,24 @@ export function ProbabilityChart({ marketId, outcomes }) {
 
         return (
             <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <TrendingUp className="h-4 w-4" />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                        <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span className="font-mono">Current Distribution</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                        {['1m', '15m', '30m', '1h', '24h', '7d', 'all'].map((range) => (
+                            <button
+                                key={range}
+                                onClick={() => handleTimeRangeChange(range)}
+                                className={`px-2 py-1 text-xs font-mono rounded transition-all ${timeRange === range
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                                    }`}
+                            >
+                                {range.toUpperCase()}
+                            </button>
+                        ))}
                     </div>
                 </div>
                 <div className="border border-primary/20 rounded-lg p-4 bg-card/50">
@@ -262,17 +296,17 @@ export function ProbabilityChart({ marketId, outcomes }) {
 
     return (
         <div className="space-y-3">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="font-mono">Probability History</span>
                 </div>
-                <div className="flex gap-1">
-                    {['24h', '7d', 'all'].map((range) => (
+                <div className="flex flex-wrap gap-1">
+                    {['1m', '15m', '30m', '1h', '24h', '7d', 'all'].map((range) => (
                         <button
                             key={range}
                             onClick={() => handleTimeRangeChange(range)}
-                            className={`px-3 py-1 text-xs font-mono rounded transition-all ${timeRange === range
+                            className={`px-2 py-1 text-xs font-mono rounded transition-all ${timeRange === range
                                 ? 'bg-primary text-primary-foreground'
                                 : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
                                 }`}
@@ -283,8 +317,8 @@ export function ProbabilityChart({ marketId, outcomes }) {
                 </div>
             </div>
 
-            <div className="border border-primary/20 rounded-lg p-4 bg-card/50" key={animationKey}>
-                <ResponsiveContainer width="100%" height={250}>
+            <div className="border border-primary/20 rounded-lg p-2 sm:p-4 bg-card/50" key={animationKey}>
+                <ResponsiveContainer width="100%" height={200} className="sm:h-[250px]">
                     <LineChart data={historyData}>
                         <CartesianGrid
                             strokeDasharray="3 3"

@@ -27,7 +27,7 @@ function App() {
       </div>
 
       <div className="min-h-screen relative overflow-hidden z-10 flex flex-col">
-        <div className="container mx-auto p-6 relative flex-1">
+        <div className="container mx-auto p-4 md:p-6 relative flex-1">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/markets/:id" element={<MarketPage />} />

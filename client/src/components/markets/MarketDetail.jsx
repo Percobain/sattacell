@@ -132,35 +132,35 @@ export function MarketDetail({ marketId }) {
       {/* Probabilities Card - Simplified */}
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Current Probabilities</CardTitle>
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+              <CardTitle className="text-base sm:text-lg whitespace-nowrap">Current Probabilities</CardTitle>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1 sm:gap-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowChart(!showChart)}
-                className="gap-2 text-xs"
+                className="gap-1 sm:gap-2 text-xs px-2 sm:px-3"
               >
-                <LineChart className="h-4 w-4" />
+                <LineChart className="h-3 w-3 sm:h-4 sm:w-4" />
                 {showChart ? 'Hide' : 'History'}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowAnalytics(!showAnalytics)}
-                className="gap-2 text-xs"
+                className="gap-1 sm:gap-2 text-xs px-2 sm:px-3"
               >
-                <BarChart3 className="h-4 w-4" />
+                <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
                 {showAnalytics ? 'Hide' : 'Analytics'}
               </Button>
             </div>
           </div>
           {market.probabilities && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-              <Target className="h-4 w-4 text-primary" />
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mt-2">
+              <Target className="h-3 w-3 sm:h-4 sm:w-4 text-primary shrink-0" />
               <span>
                 Leading: <span className="text-primary font-semibold">{market.outcomes[leadingIndex]}</span>
                 <span className="text-primary ml-1">({(market.probabilities[leadingIndex] * 100).toFixed(1)}%)</span>
