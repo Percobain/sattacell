@@ -8,13 +8,10 @@ import { AdminPage } from "./pages/AdminPage";
 import { AuthCallback } from "./pages/AuthCallback";
 import Dither from "./components/ui/Dither";
 import Noise from "./components/ui/Noise";
-import CustomCursor from "./components/ui/CustomCursor";
 
 function App() {
   return (
     <Router>
-      {/* Custom cursor */}
-      <CustomCursor />
       {/* Noise overlay */}
       <Noise
         patternSize={250}

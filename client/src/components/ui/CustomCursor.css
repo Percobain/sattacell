@@ -10,8 +10,3 @@
 .custom-cursor.visible {
     opacity: 1;
 }
-
-/* Hide default cursor globally */
-* {
-    cursor: none !important;
-}

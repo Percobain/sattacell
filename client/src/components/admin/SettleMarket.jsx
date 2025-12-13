@@ -57,13 +57,13 @@ export function SettleMarket() {
         <div className="space-y-2">
           <Label>Select Market</Label>
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+            className="flex h-9 w-full rounded-md border border-input bg-background/50 backdrop-blur-sm px-3 py-1 text-sm text-foreground"
             value={selectedMarket}
             onChange={(e) => setSelectedMarket(e.target.value)}
           >
-            <option value="">Choose a market...</option>
+            <option value="" className="text-foreground bg-background">Choose a market...</option>
             {markets.map((m) => (
-              <option key={m._id} value={m._id}>
+              <option key={m._id} value={m._id} className="text-foreground bg-background">
                 {m.title}
               </option>
             ))}
@@ -83,7 +83,7 @@ export function SettleMarket() {
                 {market.outcomes.map((outcome, idx) => (
                   <label
                     key={idx}
-                    className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-accent"
+                    className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-accent/20 text-foreground"
                   >
                     <input
                       type="radio"
@@ -92,7 +92,7 @@ export function SettleMarket() {
                       checked={selectedOutcome === idx}
                       onChange={() => setSelectedOutcome(idx)}
                     />
-                    <span>{outcome}</span>
+                    <span className="text-foreground">{outcome}</span>
                     <span className="ml-auto text-sm text-muted-foreground">
                       {(market.probabilities[idx] * 100).toFixed(1)}%
                     </span>

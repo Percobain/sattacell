@@ -103,28 +103,31 @@ export function AdminPanel() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Admin Panel</h1>
+        <h1 className="text-3xl font-bold text-foreground">Admin Panel</h1>
         <Button onClick={handleLogout} variant="outline">
           Logout
         </Button>
       </div>
 
-      <div className="flex gap-2 border-b">
+      <div className="flex gap-2 border-b border-primary/20">
         <Button
           variant={activeTab === "create" ? "default" : "ghost"}
           onClick={() => setActiveTab("create")}
+          className={activeTab !== "create" ? "text-foreground" : ""}
         >
           Create Market
         </Button>
         <Button
           variant={activeTab === "settle" ? "default" : "ghost"}
           onClick={() => setActiveTab("settle")}
+          className={activeTab !== "settle" ? "text-foreground" : ""}
         >
           Settle Market
         </Button>
         <Button
           variant={activeTab === "grant" ? "default" : "ghost"}
           onClick={() => setActiveTab("grant")}
+          className={activeTab !== "grant" ? "text-foreground" : ""}
         >
           Grant Tokens
         </Button>

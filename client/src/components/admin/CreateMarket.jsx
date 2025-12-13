@@ -89,7 +89,7 @@ export function CreateMarket() {
             <Label htmlFor="description">Description</Label>
             <textarea
               id="description"
-              className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+              className="flex min-h-[80px] w-full rounded-md border border-input bg-background/50 backdrop-blur-sm px-3 py-2 text-sm text-foreground"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
