@@ -4,18 +4,20 @@ import { useAuth } from "@/hooks/useAuth";
 
 export function AuthCallback() {
   const navigate = useNavigate();
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, error } = useAuth();
 
   useEffect(() => {
     if (!loading) {
       if (isAuthenticated) {
         navigate("/");
+      } else if (error === 'Account pending approval by admin') {
+        navigate("/pending-approval");
       } else {
-        // If auth failed, redirect to home
+        // If auth failed for other reasons, redirect to home
         setTimeout(() => navigate("/"), 2000);
       }
     }
-  }, [loading, isAuthenticated, navigate]);
+  }, [loading, isAuthenticated, error, navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">

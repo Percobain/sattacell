@@ -175,5 +175,67 @@ router.get('/stats', authenticate, requireAdmin, async (req, res, next) => {
   }
 });
 
+/**
+ * GET /api/admin/users/pending
+ * Get list of pending users awaiting approval
+ */
+router.get('/users/pending', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const pendingUsers = await User.find({ isApproved: false })
+      .select('email name firebaseUID createdAt')
+      .sort({ createdAt: -1 });
+    res.json({ users: pendingUsers });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/admin/users/:userId/approve
+ * Approve a pending user
+ */
+router.post('/users/:userId/approve', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.isApproved) {
+      return res.status(400).json({ error: 'User is already approved' });
+    }
+
+    user.isApproved = true;
+    await user.save();
+
+    res.json({ success: true, message: 'User approved successfully', user });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * DELETE /api/admin/users/:userId/reject
+ * Reject (delete) a pending user
+ */
+router.delete('/users/:userId/reject', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    await User.findByIdAndDelete(userId);
+
+    res.json({ success: true, message: 'User request rejected and removed' });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;
 

@@ -12,6 +12,7 @@ export function useAuth() {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('auth_token'));
 
   // Handle OAuth callback
@@ -30,6 +31,7 @@ export function useAuth() {
   const handleOAuthCallback = async (code) => {
     try {
       setLoading(true);
+      setError(null);
       const data = await exchangeCodeForToken(code);
       
       if (data.success && data.token) {
@@ -40,9 +42,12 @@ export function useAuth() {
         
         // Clean up URL
         window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (data.error) {
+        setError(data.error);
       }
     } catch (error) {
       console.error('OAuth callback error:', error);
+      setError(error.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
@@ -87,5 +92,6 @@ export function useAuth() {
     signIn,
     signOut,
     isAuthenticated: !!token && !!userData,
+    error,
   };
 }
