@@ -7,6 +7,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { AdminPage } from "./pages/AdminPage";
 import { AuthCallback } from "./pages/AuthCallback";
 import TargetCursor from "./components/ui/TargetCursor";
+import Dither from "./components/ui/Dither";
 
 function App() {
   return (
@@ -16,14 +17,23 @@ function App() {
         hideDefaultCursor={true}
         parallaxOn={true}
       />
-      <div className="min-h-screen bg-background noise cyber-grid relative overflow-hidden">
-        {/* Subtle ambient glow effects */}
-        <div className="fixed inset-0 pointer-events-none z-0">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-neon-blue/5 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-neon-red/5 rounded-full blur-3xl"></div>
-        </div>
 
-        <div className="container mx-auto p-6 relative z-10">
+      {/* Dither background */}
+      <div className="fixed inset-0 z-0 opacity-30">
+        <Dither
+          waveColor={[0.0, 0.4, 0.5]}
+          disableAnimation={false}
+          enableMouseInteraction={true}
+          mouseRadius={0.3}
+          colorNum={4}
+          waveAmplitude={0.3}
+          waveFrequency={3}
+          waveSpeed={0.05}
+        />
+      </div>
+
+      <div className="min-h-screen relative overflow-hidden z-10">
+        <div className="container mx-auto p-6 relative">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/markets/:id" element={<MarketPage />} />
