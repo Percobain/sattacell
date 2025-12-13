@@ -7,10 +7,19 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { AdminPage } from "./pages/AdminPage";
 import { AuthCallback } from "./pages/AuthCallback";
 import Dither from "./components/ui/Dither";
+import Noise from "./components/ui/Noise";
 
 function App() {
   return (
     <Router>
+      {/* Noise overlay */}
+      <Noise
+        patternSize={250}
+        patternScaleX={1}
+        patternScaleY={1}
+        patternRefreshInterval={2}
+        patternAlpha={15}
+      />
 
       {/* Dither background */}
       <div className="fixed inset-0 z-0 opacity-30">
