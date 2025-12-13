@@ -24,10 +24,7 @@ export function MarketCard({ market }) {
 
   return (
     <Link to={`/markets/${market._id}`}>
-      <Card className="cursor-pointer h-full group relative overflow-hidden">
-        {/* Corner accent */}
-        <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-primary/20 to-transparent"></div>
-
+      <Card className="cursor-pointer h-full">
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <CardTitle>

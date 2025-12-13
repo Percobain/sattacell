@@ -1,0 +1,17 @@
+.custom-cursor {
+    position: fixed;
+    pointer-events: none;
+    z-index: 99999;
+    transform: translate(-2px, -2px);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.custom-cursor.visible {
+    opacity: 1;
+}
+
+/* Hide default cursor globally */
+* {
+    cursor: none !important;
+}
