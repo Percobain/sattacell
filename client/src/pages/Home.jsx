@@ -5,8 +5,14 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import logo from "/CodeCell Logo White.png";
 
+import { LandingPage } from "@/pages/LandingPage";
+
 export function Home() {
   const { isAuthenticated, userData } = useAuth();
+
+  if (!isAuthenticated) {
+    return <LandingPage />;
+  }
 
   return (
     <div className="space-y-8">

@@ -7,6 +7,8 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { AdminPage } from "./pages/AdminPage";
 import { AuthCallback } from "./pages/AuthCallback";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
+import { PendingApprovalPage } from "./pages/PendingApprovalPage";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import Dither from "./components/ui/Dither";
 import Noise from "./components/ui/Noise";
 
@@ -40,11 +42,28 @@ function App() {
         <div className="container mx-auto p-4 md:p-6 relative flex-1">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/markets/:id" element={<MarketPage />} />
-            <Route path="/markets/:id/analytics" element={<AnalyticsPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/markets/:id" element={
+              <ProtectedRoute>
+                <MarketPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/markets/:id/analytics" element={
+              <ProtectedRoute>
+                <AnalyticsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <AdminPage />
+              </ProtectedRoute>
+            } />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/pending-approval" element={<PendingApprovalPage />} />
           </Routes>
         </div>
 
