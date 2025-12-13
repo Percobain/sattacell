@@ -3,7 +3,7 @@ import { LoginButton } from "@/components/auth/LoginButton";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import logo from "/logo.png";
+import logo from "/CodeCell Logo White.png";
 
 export function Home() {
   const { isAuthenticated, userData } = useAuth();
@@ -18,6 +18,7 @@ export function Home() {
               src={logo}
               alt="SattaCell Logo"
               className="h-16 w-16 md:h-24 md:w-24 object-contain"
+              style={{ filter: 'brightness(0) saturate(100%) invert(78%) sepia(85%) saturate(1000%) hue-rotate(150deg) brightness(101%) contrast(101%)' }}
             />
           </div>
           <div>
