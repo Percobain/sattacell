@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
+import { Clarity } from "./components/Clarity";
 import { Home } from "./pages/Home";
 import { MarketPage } from "./pages/MarketPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -19,6 +21,8 @@ function App() {
           </Routes>
         </div>
       </div>
+      <Analytics />
+      <Clarity />
     </Router>
   );
 }
