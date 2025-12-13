@@ -19,24 +19,29 @@ import { TrendingUp, Clock } from "lucide-react";
 const COLORS = [
     '#00d4ff', // cyan
     '#ff6b35', // orange
-    '#00ff9f', // green
-    '#ff3d00', // red-orange
+    '#00ff9f', // emerald
     '#8b5cf6', // purple
     '#ffd700', // gold
     '#ff1493', // deep pink
-    '#32cd32', // lime green
-    '#ff4500', // orange red
-    '#1e90ff', // dodger blue
+    '#1e90ff', // blue
+    '#32cd32', // lime
+    '#ff4500', // red-orange
+    '#9932cc', // violet
+    '#ff1744', // bright red
     '#ff69b4', // hot pink
-    '#00ced1', // dark turquoise
-    '#9932cc', // dark orchid
-    '#adff2f', // green yellow
+    '#adff2f', // yellow-green
     '#dc143c', // crimson
-    '#00bfff', // deep sky blue
+    '#9c27b0', // deep purple
     '#ff8c00', // dark orange
-    '#7b68ee', // medium slate blue
-    '#3cb371', // medium sea green
-    '#f0e68c', // khaki
+    '#00acc1', // teal
+    '#2e7d32', // dark green
+    '#ffc107', // amber
+    '#e91e63', // pink
+    '#607d8b', // blue-grey
+    '#ff6347', // tomato
+    '#3f51b5', // indigo
+    '#9e9e9e', // grey
+    '#795548'  // brown
 ];
 
 // CSS for line drawing animation
@@ -228,7 +233,7 @@ export function ProbabilityChart({ marketId, outcomes }) {
         }));
 
         return (
-            <div className="space-y-3">
+            <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                         <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -251,7 +256,7 @@ export function ProbabilityChart({ marketId, outcomes }) {
                 </div>
                 <div className="border border-primary/20 rounded-lg p-4 bg-card/50">
                     <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
+                        <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                             <Pie
                                 data={pieData}
                                 cx="50%"
@@ -281,14 +286,27 @@ export function ProbabilityChart({ marketId, outcomes }) {
                                     );
                                 }}
                             />
-                            <Legend
-                                wrapperStyle={{ fontSize: '12px', fontFamily: 'monospace' }}
-                                formatter={(value, entry) => (
-                                    <span style={{ color: entry.color }}>{value}</span>
-                                )}
-                            />
                         </PieChart>
                     </ResponsiveContainer>
+                    {/* Custom Legend with proper spacing */}
+                    <div className="mt-4 pt-4 border-t border-primary/10">
+                        <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center">
+                            {pieData.map((entry, index) => (
+                                <div key={index} className="flex items-center gap-1.5">
+                                    <div 
+                                        className="w-3 h-3 rounded-sm shrink-0" 
+                                        style={{ backgroundColor: entry.color }}
+                                    />
+                                    <span 
+                                        className="text-xs font-mono whitespace-nowrap"
+                                        style={{ color: entry.color }}
+                                    >
+                                        {entry.name}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -319,7 +337,7 @@ export function ProbabilityChart({ marketId, outcomes }) {
 
             <div className="border border-primary/20 rounded-lg p-2 sm:p-4 bg-card/50" key={animationKey}>
                 <ResponsiveContainer width="100%" height={200} className="sm:h-[250px]">
-                    <LineChart data={historyData}>
+                    <LineChart data={historyData} margin={{ top: 10, right: 10, bottom: 60, left: 10 }}>
                         <CartesianGrid
                             strokeDasharray="3 3"
                             stroke="hsl(187 100% 50% / 0.1)"
@@ -340,7 +358,18 @@ export function ProbabilityChart({ marketId, outcomes }) {
                             padding={{ top: 10, bottom: 10 }}
                         />
                         <Tooltip content={<CustomTooltip />} />
-                        <Legend wrapperStyle={{ fontSize: '12px', fontFamily: 'monospace' }} />
+                        <Legend 
+                            verticalAlign="bottom"
+                            align="center"
+                            layout="horizontal"
+                            wrapperStyle={{ 
+                                fontSize: '11px', 
+                                fontFamily: 'monospace',
+                                paddingTop: '15px',
+                                lineHeight: '1.6'
+                            }}
+                            iconSize={8}
+                        />
                         {outcomes.map((outcome, idx) => (
                             <Line
                                 key={outcome}
