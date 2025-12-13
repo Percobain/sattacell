@@ -215,7 +215,7 @@ All steps are wrapped in a MongoDB transaction to ensure atomicity.
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
+git clone git@github.com:Percobain/sattacell.git
 cd sattacell
 ```
 
