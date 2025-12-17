@@ -2,7 +2,7 @@ const Market = require('../models/Market');
 const { calculateProbabilities } = require('./lmsrService');
 
 /**
- * Initialize MongoDB Change Teams for real-time updates
+ * Initialize MongoDB Change Streams for real-time updates
  * @param {Server} io - Socket.io instance
  */
 function initRealtimeService(io) {
