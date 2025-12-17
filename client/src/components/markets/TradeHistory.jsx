@@ -8,6 +8,16 @@ export function TradeHistory({ marketId, outcomes }) {
 
   useEffect(() => {
     fetchHistory();
+    
+    // Listen for trade completed events to refresh history
+    const handleTradeCompleted = () => {
+      fetchHistory();
+    };
+    
+    window.addEventListener('tradeCompleted', handleTradeCompleted);
+    return () => {
+      window.removeEventListener('tradeCompleted', handleTradeCompleted);
+    };
   }, [marketId]);
 
   const fetchHistory = async () => {

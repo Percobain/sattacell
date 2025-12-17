@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMarket } from "@/hooks/useMarkets";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,10 +19,22 @@ import {
 } from "lucide-react";
 
 export function MarketDetail({ marketId }) {
-  const { market, loading, error } = useMarket(marketId);
+  const { market, loading, error, refetch: refetchMarket } = useMarket(marketId);
   const [showHistory, setShowHistory] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showChart, setShowChart] = useState(true);
+
+  // Listen for trade completed events to refresh market data (positions)
+  useEffect(() => {
+    const handleTradeCompleted = () => {
+      refetchMarket();
+    };
+
+    window.addEventListener('tradeCompleted', handleTradeCompleted);
+    return () => {
+      window.removeEventListener('tradeCompleted', handleTradeCompleted);
+    };
+  }, [refetchMarket]);
 
   // Loading state with skeleton
   if (loading) {

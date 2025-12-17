@@ -9,8 +9,58 @@ import { AuthCallback } from "./pages/AuthCallback";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { PendingApprovalPage } from "./pages/PendingApprovalPage";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { useAuth } from "./hooks/useAuth";
 import Dither from "./components/ui/Dither";
 import Noise from "./components/ui/Noise";
+
+function AppContent() {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <div className="min-h-screen relative overflow-hidden z-10 flex flex-col">
+      <div className={`relative flex-1 ${isAuthenticated ? 'container mx-auto p-4 md:p-6' : ''}`}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/markets/:id" element={
+            <ProtectedRoute>
+              <MarketPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/markets/:id/analytics" element={
+            <ProtectedRoute>
+              <AnalyticsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <AdminPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/pending-approval" element={<PendingApprovalPage />} />
+        </Routes>
+      </div>
+
+      {/* Footer - only show when authenticated */}
+      {isAuthenticated && (
+        <footer className="py-6 text-center border-t border-primary/20">
+          <p className="text-sm text-muted-foreground font-mono">
+            made with <span className="text-red-500">❤</span> by{' '}
+            <span className="text-primary">NGM</span> •{' '}
+            <span className="text-primary">GNG</span> •{' '}
+            <span className="text-primary">KRT</span> •{' '}
+            <span className="text-primary">BNG</span>
+          </p>
+        </footer>
+      )}
+    </div>
+  );
+}
 
 function App() {
   return (

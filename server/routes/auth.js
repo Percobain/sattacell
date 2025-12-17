@@ -111,6 +111,7 @@ router.post('/callback', async (req, res, next) => {
         name: user.name,
         balance: user.balance,
         isAdmin: user.isAdmin,
+        firebaseUID: user.firebaseUID,
       },
     });
   } catch (error) {
@@ -132,6 +133,7 @@ router.get('/me', authenticate, async (req, res, next) => {
         name: user.name,
         balance: user.balance,
         isAdmin: user.isAdmin,
+        firebaseUID: user.firebaseUID,
       },
     });
   } catch (error) {

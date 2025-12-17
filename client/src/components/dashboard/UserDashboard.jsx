@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
@@ -5,9 +6,23 @@ import { useTrades, usePortfolio } from "@/hooks/useTrades";
 import { Link } from "react-router-dom";
 
 export function UserDashboard() {
-  const { userData } = useAuth();
-  const { trades, loading: tradesLoading } = useTrades();
-  const { portfolio, loading: portfolioLoading } = usePortfolio();
+  const { userData, refetchUserData } = useAuth();
+  const { trades, loading: tradesLoading, refetch: refetchTrades } = useTrades();
+  const { portfolio, loading: portfolioLoading, refetch: refetchPortfolio } = usePortfolio();
+
+  // Listen for trade completed events to refresh data
+  useEffect(() => {
+    const handleTradeCompleted = () => {
+      refetchUserData();
+      refetchPortfolio();
+      refetchTrades();
+    };
+
+    window.addEventListener('tradeCompleted', handleTradeCompleted);
+    return () => {
+      window.removeEventListener('tradeCompleted', handleTradeCompleted);
+    };
+  }, [refetchUserData, refetchPortfolio, refetchTrades]);
 
   return (
     <div className="space-y-6">

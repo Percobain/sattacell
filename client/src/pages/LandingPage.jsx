@@ -4,61 +4,87 @@ import logo from "/CodeCell Logo White.png";
 
 export function LandingPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[85vh] text-center space-y-12 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] bg-neon-purple/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+    <div className="flex flex-col h-screen relative overflow-hidden">
+      {/* Scan line overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,255,0.1) 2px, rgba(0,255,255,0.1) 4px)',
+        }}
+      ></div>
+
+      {/* Top navigation bar */}
+      <div className="flex justify-between items-start p-4 md:p-8 relative z-10">
+        {/* Left menu */}
+        <div className="space-y-1 font-mono text-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-neon-red">[01]</span>
+            <span className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">MARKETS</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-neon-red">[02]</span>
+            <span className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">LEADERBOARD</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-neon-red">[03]</span>
+            <span className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">HOW IT WORKS</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-neon-red">[04]</span>
+            <span className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">ABOUT</span>
+          </div>
+        </div>
+
+        {/* Right CTA button */}
+        <div className="scale-110">
+          <LoginButton />
+        </div>
       </div>
 
-      {/* Hero Content */}
-      <div className="relative z-10 space-y-6 max-w-4xl px-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-        <div className="flex justify-center mb-8">
-          <div className="relative group">
-            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full group-hover:bg-primary/30 transition-all duration-500"></div>
-            <img
-              src={logo}
-              alt="SattaCell Logo"
-              className="h-32 w-32 md:h-40 md:w-40 object-contain relative z-10 drop-shadow-[0_0_15px_rgba(0,255,255,0.3)]"
-              style={{ filter: 'brightness(0) saturate(100%) invert(78%) sepia(85%) saturate(1000%) hue-rotate(150deg) brightness(101%) contrast(101%)' }}
-            />
-          </div>
+      {/* Data strip */}
+      <div className="flex justify-between items-center px-4 md:px-8 py-2 font-mono text-xs relative z-10">
+        <div className="flex items-center gap-4">
+          <span className="text-neon-red">予測市場</span>
+          <span className="text-neon-red text-[10px]">PN: 2483-AX9</span>
+          <span className="text-neon-red text-[10px]">// ACTIVE PROTOCOL</span>
         </div>
+        <div className="flex items-center gap-4">
+          <span className="text-muted-foreground text-[10px]">BATCH: {new Date().toISOString().split('T')[0]}</span>
+          <span className="text-muted-foreground text-[10px]">TOK: ¥1000</span>
+          <span className="text-neon-red">信頼</span>
+        </div>
+      </div>
 
-        <h1 className="text-4xl md:text-7xl font-display font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-neon-purple to-neon-red text-glow-blue animate-pulse">
+      {/* Giant centered text */}
+      <div className="flex-1 flex items-center justify-center relative">
+        <h1
+          className="text-[10vw] md:text-[12vw] font-display font-black tracking-tighter text-primary select-none leading-none"
+          style={{
+            textShadow: '0 0 80px rgba(0, 255, 255, 0.6), 0 0 120px rgba(0, 255, 255, 0.4), 0 0 200px rgba(0, 255, 255, 0.2)',
+          }}
+        >
           SATTACELL
         </h1>
+      </div>
 
-        <div className="space-y-4">
-          <p className="text-xl md:text-2xl font-mono text-muted-foreground">
-            // PREDICT. TRADE. <span className="text-neon-green">WIN.</span>
-          </p>
-          <p className="text-base md:text-lg text-muted-foreground/80 max-w-2xl mx-auto">
-            The next-generation prediction market protocol. 
-            Trade on real-world outcomes with instant settlement.
+      {/* Bottom section */}
+      <div className="flex justify-between items-end p-4 md:p-8 relative z-10">
+        {/* Left - About text */}
+        <div className="max-w-md space-y-2">
+          <div className="font-mono text-[10px] text-muted-foreground/50 space-y-0.5">
+            <div>A</div>
+            <div>BO</div>
+            <div>UT</div>
+          </div>
+          <p className="font-mono text-xs md:text-sm text-muted-foreground leading-relaxed">
+            <span className="text-primary font-semibold">SATTACELL</span> WAS BUILT FOR PREDICTIONS AND TEAMS WHO ARE
+            SERIOUS ABOUT <span className="text-neon-red">WINNING BIG</span> – TRADE ON REAL-WORLD OUTCOMES
           </p>
         </div>
 
-        <div className="pt-8 flex flex-col md:flex-row gap-4 justify-center items-center">
-          <div className="scale-125">
-            <LoginButton />
-          </div>
-        </div>
-
-        {/* Stats / Trust Badges */}
-        <div className="pt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center text-xs font-mono text-muted-foreground/50 border-t border-primary/10 mt-12">
-          <div className="space-y-1">
-            <div className="text-primary text-xl">ZERO</div>
-            <div>FEES</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-neon-purple text-xl">INSTANT</div>
-            <div>SETTLEMENT</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-neon-red text-xl">SECURE</div>
-            <div>PROTOCOL</div>
-          </div>
+        {/* Right - Japanese text */}
+        <div className="font-mono text-xs text-muted-foreground text-right">
+          <div>私たちがしていること</div>
         </div>
       </div>
     </div>

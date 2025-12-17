@@ -13,6 +13,7 @@ export function useAuth() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // const [error, setError] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('auth_token'));
 
   // Handle OAuth callback
@@ -33,15 +34,17 @@ export function useAuth() {
       setLoading(true);
       setError(null);
       const data = await exchangeCodeForToken(code);
-      
+
       if (data.success && data.token) {
         localStorage.setItem('auth_token', data.token);
         setToken(data.token);
         setUserData(data.user);
         setUser({ email: data.user.email });
-        
+
         // Clean up URL
         window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (data.error) {
+        setError(data.error);
       } else if (data.error) {
         setError(data.error);
       }
@@ -67,6 +70,17 @@ export function useAuth() {
     }
   };
 
+  const refetchUserData = async () => {
+    if (!token) return;
+    try {
+      const data = await api.get('/auth/me');
+      setUserData(data.user);
+      setUser({ email: data.user.email });
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+    }
+  };
+
   const signIn = async () => {
     try {
       const authUrl = await getGoogleAuthUrl();
@@ -83,6 +97,8 @@ export function useAuth() {
     setToken(null);
     setUser(null);
     setUserData(null);
+    // Redirect to home/landing page
+    window.location.href = '/';
   };
 
   return {
@@ -92,6 +108,8 @@ export function useAuth() {
     signIn,
     signOut,
     isAuthenticated: !!token && !!userData,
+    error,
+    refetchUserData,
     error,
   };
 }

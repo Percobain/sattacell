@@ -100,7 +100,7 @@ weight_i = exp(q_i / b)
 
 Where:
 - `q_i` = Current state vector (quantity of shares) for outcome `i`
-- `b` = Liquidity parameter (controls price sensitivity)
+- `b` = Liquidity parameter (controls price sensitivity, default: 100)
 - `exp()` = Exponential function
 
 #### 2. Probability Calculation
@@ -131,41 +131,138 @@ cost = C(q_after) - C(q_before)
 - **Positive cost** = User pays tokens (buying shares)
 - **Negative cost** = User receives tokens (selling shares)
 
-### Example Calculation
+### Real-World Example: Step-by-Step
 
-Let's say we have 2 outcomes with:
-- `q = [10, 5]` (10 shares for outcome 1, 5 for outcome 2)
-- `b = 100` (liquidity parameter)
+Let's walk through a complete example with actual numbers from the platform:
 
-**Step 1: Calculate Weights**
+#### Initial State
+- Market: "Will it rain tomorrow?" with outcomes ["Yes", "No"]
+- Initial state: `q = [0, 0]` (no shares outstanding)
+- Liquidity parameter: `b = 100`
+- Initial probabilities: 50% / 50% (equal)
+
+#### Trade 1: Buying 100 shares of "Yes"
+
+**Before Trade:**
 ```
-weight_1 = exp(10/100) = exp(0.1) ≈ 1.105
-weight_2 = exp(5/100) = exp(0.05) ≈ 1.051
+q = [0, 0]
+C([0, 0]) = 100 × ln(exp(0/100) + exp(0/100))
+         = 100 × ln(1 + 1)
+         = 100 × ln(2)
+         = 100 × 0.693
+         = 69.31 tokens
 ```
 
-**Step 2: Calculate Probabilities**
+**After Trade:**
 ```
-P_1 = 1.105 / (1.105 + 1.051) = 1.105 / 2.156 ≈ 0.513 (51.3%)
-P_2 = 1.051 / 2.156 ≈ 0.487 (48.7%)
+q = [100, 0]  (added 100 shares to "Yes")
+C([100, 0]) = 100 × ln(exp(100/100) + exp(0/100))
+            = 100 × ln(exp(1) + exp(0))
+            = 100 × ln(2.718 + 1)
+            = 100 × ln(3.718)
+            = 100 × 1.315
+            = 131.5 tokens
 ```
 
-**Step 3: Calculate Cost**
+**Cost:**
 ```
-C(q) = 100 * ln(1.105 + 1.051) = 100 * ln(2.156) ≈ 100 * 0.768 ≈ 76.8 tokens
+Cost = 131.5 - 69.31 = 62.19 tokens
 ```
 
-If a user buys 5 more shares of outcome 1:
-- New state: `q = [15, 5]`
-- New cost: `C(q_new) = 100 * ln(exp(0.15) + exp(0.05)) ≈ 100 * ln(2.311) ≈ 83.8 tokens`
-- Trade cost: `83.8 - 76.8 = 7.0 tokens`
+**New Probabilities:**
+```
+weight_yes = exp(100/100) = exp(1) = 2.718
+weight_no = exp(0/100) = exp(0) = 1.0
+sum = 3.718
+
+P_yes = 2.718 / 3.718 = 0.731 = 73.1%
+P_no = 1.0 / 3.718 = 0.269 = 26.9%
+```
+
+**Result:**
+- User pays: **62.19 tokens**
+- User receives: **100 shares of "Yes"**
+- If "Yes" wins: User gets **100 tokens** (1 token per share)
+- Profit if wins: **100 - 62.19 = 37.81 tokens** (60.8% return)
+
+#### Trade 2: Buying 100 shares of "No" (after Trade 1)
+
+**Before Trade:**
+```
+q = [100, 0]  (from previous trade)
+C([100, 0]) = 131.5 tokens (calculated above)
+```
+
+**After Trade:**
+```
+q = [100, 100]  (added 100 shares to "No")
+C([100, 100]) = 100 × ln(exp(100/100) + exp(100/100))
+              = 100 × ln(exp(1) + exp(1))
+              = 100 × ln(2.718 + 2.718)
+              = 100 × ln(5.436)
+              = 100 × 1.693
+              = 169.3 tokens
+```
+
+**Cost:**
+```
+Cost = 169.3 - 131.5 = 37.8 tokens
+```
+
+**New Probabilities:**
+```
+weight_yes = exp(100/100) = 2.718
+weight_no = exp(100/100) = 2.718
+sum = 5.436
+
+P_yes = 2.718 / 5.436 = 0.5 = 50.0%
+P_no = 2.718 / 5.436 = 0.5 = 50.0%
+```
+
+**Result:**
+- User pays: **37.8 tokens**
+- User receives: **100 shares of "No"**
+- If "No" wins: User gets **100 tokens** (1 token per share)
+- Profit if wins: **100 - 37.8 = 62.2 tokens** (164.6% return)
+- Market rebalances to **50/50** (equal shares = equal probabilities)
+
+### Key Insights
+
+1. **Price Impact (Slippage)**: 
+   - Buying shares increases the price of that outcome
+   - The first 100 "Yes" shares cost 62.19 tokens
+   - The first 100 "No" shares cost only 37.8 tokens (cheaper because "No" was at 26.9%)
+
+2. **Why Costs Differ from Simple Estimates**:
+   - Simple estimate: `100 shares × 50% = 50 tokens` 
+   - Actual LMSR cost: `62.19 tokens` 
+   - The difference (12.19 tokens) is the **price impact** or **slippage**
+
+3. **Market Rebalancing**:
+   - When both outcomes have equal shares (`q = [100, 100]`), probabilities return to 50/50
+   - This is the **equilibrium state** of the market
+
+4. **Profit Calculation**:
+   - Each share pays **1 token** if the outcome wins
+   - Profit = `(Shares × 1) - Cost Paid`
+   - Example: 100 shares cost 62.19 tokens, win = 100 tokens, profit = 37.81 tokens
 
 ### Why LMSR Works
 
 1. **Automatic Pricing**: No need for order books or matching buyers/sellers
-2. **Liquidity**: Always a price available (though it may be expensive)
-3. **Fairness**: Prices reflect true market probabilities
-4. **Atomic**: All trades are executed atomically using MongoDB transactions
-5. **Scalable**: Works with any number of outcomes
+2. **Liquidity**: Always a price available (though it may be expensive for large orders)
+3. **Fairness**: Prices reflect true market probabilities and account for market depth
+4. **Price Discovery**: Probabilities automatically adjust based on trading activity
+5. **Atomic**: All trades are executed atomically using MongoDB transactions
+6. **Scalable**: Works with any number of outcomes
+
+### UI Implementation
+
+The platform calculates **actual LMSR costs** in real-time, not simple estimates:
+- Uses current market state (`q` array)
+- Accounts for liquidity parameter (`b`)
+- Shows exact cost you'll pay
+- Updates probabilities after each trade
 
 ### Trade Flow (Atomic & Safe)
 

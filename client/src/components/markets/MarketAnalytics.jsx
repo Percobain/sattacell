@@ -25,6 +25,16 @@ export function MarketAnalytics({ marketId, outcomes }) {
 
   useEffect(() => {
     fetchAnalytics();
+    
+    // Listen for trade completed events to refresh analytics
+    const handleTradeCompleted = () => {
+      fetchAnalytics();
+    };
+    
+    window.addEventListener('tradeCompleted', handleTradeCompleted);
+    return () => {
+      window.removeEventListener('tradeCompleted', handleTradeCompleted);
+    };
   }, [marketId]);
 
   const fetchAnalytics = async () => {
