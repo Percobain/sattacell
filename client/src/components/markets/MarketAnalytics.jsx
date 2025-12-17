@@ -28,8 +28,10 @@ export function MarketAnalytics({ marketId, outcomes }) {
     fetchAnalytics();
     
     // Listen for trade completed events to refresh analytics
-    const handleTradeCompleted = () => {
-      fetchAnalytics();
+    const handleTradeCompleted = (event) => {
+      const changedMarketId = event?.detail?.marketId;
+      if (changedMarketId && changedMarketId !== marketId) return;
+      fetchAnalytics(true);
     };
     
     window.addEventListener('tradeCompleted', handleTradeCompleted);

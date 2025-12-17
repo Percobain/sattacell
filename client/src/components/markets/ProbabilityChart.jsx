@@ -80,8 +80,11 @@ export function ProbabilityChart({ marketId, outcomes }) {
     useEffect(() => {
         fetchHistory();
 
-        // Listen for trade completed events to refresh the chart
-        const handleTradeCompleted = () => {
+        // Listen for trade completed events (from local trades or sockets)
+        const handleTradeCompleted = (event) => {
+            const changedMarketId = event?.detail?.marketId;
+            // If event is for another market, ignore. Local events (no detail) still refresh.
+            if (changedMarketId && changedMarketId !== marketId) return;
             fetchHistory();
         };
         window.addEventListener('tradeCompleted', handleTradeCompleted);

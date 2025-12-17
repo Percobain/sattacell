@@ -90,6 +90,7 @@ function App() {
     });
 
     socket.on("trade:executed", (payload) => {
+      console.log("[realtime] trade:executed", payload);
       // Broadcast the same custom DOM event existing components already use
       window.dispatchEvent(new CustomEvent("tradeCompleted", { detail: payload }));
     });

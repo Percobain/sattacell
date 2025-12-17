@@ -11,7 +11,9 @@ export function TradeHistory({ marketId }) {
     fetchHistory();
 
     // Keep history in sync with the probability chart using realtime events
-    const handleTradeCompleted = () => {
+    const handleTradeCompleted = (event) => {
+      const changedMarketId = event?.detail?.marketId;
+      if (changedMarketId && changedMarketId !== marketId) return;
       // Background refresh – don't show loading spinner again
       fetchHistory(true);
     };
