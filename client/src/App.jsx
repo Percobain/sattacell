@@ -95,6 +95,11 @@ function App() {
       window.dispatchEvent(new CustomEvent("tradeCompleted", { detail: payload }));
     });
 
+    socket.on("market:update", (payload) => {
+      console.log("[realtime] market:update", payload);
+      window.dispatchEvent(new CustomEvent("marketUpdate", { detail: payload }));
+    });
+
     socket.on("disconnect", () => {
       console.log("[realtime] disconnected");
     });

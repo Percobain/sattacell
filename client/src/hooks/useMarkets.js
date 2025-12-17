@@ -10,6 +10,24 @@ export function useMarkets(status = null) {
     fetchMarkets();
   }, [status]);
 
+  useEffect(() => {
+    const handleMarketUpdate = (event) => {
+      const { _id, probabilities, status: newStatus } = event.detail;
+      setMarkets((prevMarkets) =>
+        prevMarkets.map((m) =>
+          m._id === _id
+            ? { ...m, probabilities, status: newStatus || m.status }
+            : m
+        )
+      );
+    };
+
+    window.addEventListener('marketUpdate', handleMarketUpdate);
+    return () => {
+      window.removeEventListener('marketUpdate', handleMarketUpdate);
+    };
+  }, []);
+
   const fetchMarkets = async () => {
     try {
       setLoading(true);
@@ -36,6 +54,27 @@ export function useMarket(id) {
     if (id) {
       fetchMarket();
     }
+  }, [id]);
+
+  useEffect(() => {
+    const handleMarketUpdate = (event) => {
+      const { _id, probabilities, status: newStatus } = event.detail;
+      if (_id === id) {
+        setMarket((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            probabilities,
+            status: newStatus || prev.status,
+          };
+        });
+      }
+    };
+
+    window.addEventListener('marketUpdate', handleMarketUpdate);
+    return () => {
+      window.removeEventListener('marketUpdate', handleMarketUpdate);
+    };
   }, [id]);
 
   /**
