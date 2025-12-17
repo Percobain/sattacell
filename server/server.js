@@ -55,6 +55,10 @@ const io = new Server(server, {
 // Make Socket.IO instance available in routes via app
 app.set('io', io);
 
+// Initialize Realtime Service
+const { initRealtimeService } = require('./services/realtimeService');
+const changeStream = initRealtimeService(io);
+
 io.on('connection', (socket) => {
   console.log('Client connected', socket.id);
 
@@ -65,4 +69,10 @@ io.on('connection', (socket) => {
 
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+
+// Handle graceful shutdown for change stream?
+process.on('SIGINT', async () => {
+  await changeStream.close();
+  process.exit(0);
 });
