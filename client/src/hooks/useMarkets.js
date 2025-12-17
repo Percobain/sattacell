@@ -38,16 +38,27 @@ export function useMarket(id) {
     }
   }, [id]);
 
-  const fetchMarket = async () => {
+  /**
+   * Fetch market data.
+   * If options.silent is true, we avoid toggling the loading flag so
+   * existing UI (tabs, history) doesn't flicker back to skeletons.
+   */
+  const fetchMarket = async (options = {}) => {
+    const { silent = false } = options;
+
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       const data = await api.get(`/markets/${id}`);
       setMarket(data.market);
       setError(null);
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 

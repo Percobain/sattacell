@@ -22,6 +22,7 @@ export function MarketAnalytics({ marketId, outcomes }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCharts, setShowCharts] = useState(false);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   useEffect(() => {
     fetchAnalytics();
@@ -37,16 +38,21 @@ export function MarketAnalytics({ marketId, outcomes }) {
     };
   }, [marketId]);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent && !hasLoadedOnce) {
+        setLoading(true);
+      }
       const data = await api.get(`/markets/${marketId}/analytics`);
       setAnalytics(data.analytics);
       setError(null);
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (!silent && !hasLoadedOnce) {
+        setLoading(false);
+        setHasLoadedOnce(true);
+      }
     }
   };
 

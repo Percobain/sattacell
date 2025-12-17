@@ -1,41 +1,45 @@
 import { useState, useEffect } from "react";
 import { api } from "@/services/api";
 
-export function TradeHistory({ marketId, outcomes }) {
+export function TradeHistory({ marketId }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   useEffect(() => {
     fetchHistory();
 
-    // Keep history in sync with the probability chart:
-    // - Poll periodically, just like the chart
-    // - Refresh immediately when a trade completes
-    const interval = setInterval(fetchHistory, 20000);
-
+    // Keep history in sync with the probability chart using realtime events
     const handleTradeCompleted = () => {
-      fetchHistory();
+      // Background refresh – don't show loading spinner again
+      fetchHistory(true);
     };
 
     window.addEventListener('tradeCompleted', handleTradeCompleted);
 
     return () => {
-      clearInterval(interval);
       window.removeEventListener('tradeCompleted', handleTradeCompleted);
     };
   }, [marketId]);
 
-  const fetchHistory = async () => {
+  // If silent is true, we avoid toggling the loading state so the list
+  // doesn't disappear while you're scrolling the History tab.
+  const fetchHistory = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent && !hasLoadedOnce) {
+        setLoading(true);
+      }
       const data = await api.get(`/markets/${marketId}/history`);
       setHistory(data.history);
       setError(null);
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (!silent && !hasLoadedOnce) {
+        setLoading(false);
+        setHasLoadedOnce(true);
+      }
     }
   };
 

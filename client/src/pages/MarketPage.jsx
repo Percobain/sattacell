@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { MarketDetail } from "@/components/markets/MarketDetail";
 import { TradePanel } from "@/components/trading/TradePanel";
+import { FloatingHistoryButton } from "@/components/markets/FloatingHistoryButton";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -9,7 +10,7 @@ export function MarketPage() {
   const { id } = useParams();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative">
       {/* Navigation */}
       <Link to="/">
         <Button variant="ghost" className="gap-2 text-muted-foreground hover:text-primary">
@@ -30,6 +31,9 @@ export function MarketPage() {
           <TradePanel marketId={id} />
         </div>
       </div>
+
+      {/* Draggable floating history button, lives on this page only */}
+      <FloatingHistoryButton marketId={id} />
     </div>
   );
 }

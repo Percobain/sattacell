@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/services/api";
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
@@ -79,7 +79,6 @@ export function ProbabilityChart({ marketId, outcomes }) {
 
     useEffect(() => {
         fetchHistory();
-        const interval = setInterval(fetchHistory, 20000);
 
         // Listen for trade completed events to refresh the chart
         const handleTradeCompleted = () => {
@@ -88,7 +87,6 @@ export function ProbabilityChart({ marketId, outcomes }) {
         window.addEventListener('tradeCompleted', handleTradeCompleted);
 
         return () => {
-            clearInterval(interval);
             window.removeEventListener('tradeCompleted', handleTradeCompleted);
         };
     }, [marketId]);

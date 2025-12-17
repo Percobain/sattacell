@@ -27,20 +27,15 @@ export function MarketDetail({ marketId }) {
   // Keep market data (and leading outcome) in sync with live trading
   useEffect(() => {
     const handleTradeCompleted = () => {
-      refetchMarket();
+      // Background refresh so the page doesn't jump back to skeletons
+      refetchMarket({ silent: true });
     };
 
     // Refresh immediately when a trade completes
     window.addEventListener('tradeCompleted', handleTradeCompleted);
 
-    // Poll periodically so leading outcome stays aligned with the probability chart
-    const interval = setInterval(() => {
-      refetchMarket();
-    }, 20000);
-
     return () => {
       window.removeEventListener('tradeCompleted', handleTradeCompleted);
-      clearInterval(interval);
     };
   }, [refetchMarket]);
 
@@ -274,9 +269,9 @@ export function MarketDetail({ marketId }) {
             {showHistory ? "Recent trades in this market" : "Your current holdings"}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+          <CardContent>
           {showHistory ? (
-            <TradeHistory marketId={marketId} outcomes={market.outcomes} />
+            <TradeHistory marketId={marketId} />
           ) : hasUserPosition ? (
             <div className="space-y-2">
               {Object.entries(market.userPosition).map(([outcomeIndex, shares]) => (

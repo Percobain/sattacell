@@ -1,8 +1,10 @@
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
 const cors = require('cors');
 const connectDB = require('./config/database');
 const { errorHandler } = require('./utils/errors');
+const { Server } = require('socket.io');
 
 // Routes
 const authRoutes = require('./routes/auth');
@@ -18,7 +20,11 @@ const PORT = process.env.PORT || 3000;
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_ORIGIN || '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -37,6 +43,26 @@ app.use('/api/admin', adminRoutes);
 // Error handler
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+// Create HTTP server and attach Socket.IO for realtime updates
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_ORIGIN || '*',
+    methods: ['GET', 'POST'],
+  },
+});
+
+// Make Socket.IO instance available in routes via app
+app.set('io', io);
+
+io.on('connection', (socket) => {
+  console.log('Client connected', socket.id);
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected', socket.id);
+  });
+});
+
+server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
