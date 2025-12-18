@@ -12,11 +12,18 @@ export function useMarkets(status = null) {
 
   useEffect(() => {
     const handleMarketUpdate = (event) => {
-      const { _id, probabilities, status: newStatus } = event.detail;
+      const { _id, probabilities, status: newStatus, volume, tradeCount, q } = event.detail;
       setMarkets((prevMarkets) =>
         prevMarkets.map((m) =>
           m._id === _id
-            ? { ...m, probabilities, status: newStatus || m.status }
+            ? {
+              ...m,
+              probabilities,
+              status: newStatus || m.status,
+              volume: volume !== undefined ? volume : m.volume,
+              tradeCount: tradeCount !== undefined ? tradeCount : m.tradeCount,
+              q: q || m.q
+            }
             : m
         )
       );
@@ -58,7 +65,7 @@ export function useMarket(id) {
 
   useEffect(() => {
     const handleMarketUpdate = (event) => {
-      const { _id, probabilities, status: newStatus } = event.detail;
+      const { _id, probabilities, status: newStatus, volume, tradeCount, q } = event.detail;
       if (_id === id) {
         setMarket((prev) => {
           if (!prev) return prev;
@@ -66,6 +73,9 @@ export function useMarket(id) {
             ...prev,
             probabilities,
             status: newStatus || prev.status,
+            volume: volume !== undefined ? volume : prev.volume,
+            tradeCount: tradeCount !== undefined ? tradeCount : prev.tradeCount,
+            q: q || prev.q,
           };
         });
       }

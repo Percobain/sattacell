@@ -19,11 +19,11 @@ function initRealtimeService(io) {
         },
         {
             $project: {
-                'fullDocument.description': 0, // Optimize: Don't fetch/transmit large description
-                'fullDocument.createdBy': 0,
-                'fullDocument.createdAt': 0,
-                'fullDocument.updatedAt': 0,
-                'fullDocument.__v': 0
+                'fullDocument._id': 1,
+                'fullDocument.status': 1,
+                'fullDocument.q': 1,
+                'fullDocument.b': 1,
+                'fullDocument.outcomes': 1
             }
         }
     ], { fullDocument: 'updateLookup' });
@@ -52,6 +52,7 @@ function initRealtimeService(io) {
                 _id: market._id,
                 probabilities,
                 status: market.status,
+                q: market.q, // Critical for cost calculations (LMSR)
                 // Calculate minimal delta if needed, but sending full prob array is small enough
                 // and safer for consistency.
             };

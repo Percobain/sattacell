@@ -45,6 +45,7 @@ router.post(
           marketId,
           outcomeIndex,
           sharesDelta: parseFloat(sharesDelta),
+          cost: result.trade.cost,
           userId: req.user._id,
         });
       }
@@ -101,6 +102,7 @@ router.post(
           marketId,
           outcomeIndex,
           sharesDelta: -parseFloat(shares),
+          cost: result.trade.cost,
           userId: req.user._id,
         });
       }

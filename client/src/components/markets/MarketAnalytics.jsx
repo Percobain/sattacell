@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { api } from "@/services/api";
-import { 
-  Trophy, 
-  TrendingUp, 
-  Users, 
-  Activity, 
-  BarChart3, 
+import {
+  Trophy,
+  TrendingUp,
+  Users,
+  Activity,
+  BarChart3,
   Target,
   DollarSign,
   ArrowUpDown,
@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { MarketCharts } from "./MarketCharts";
 
-export function MarketAnalytics({ marketId, outcomes }) {
+export function MarketAnalytics({ marketId, outcomes, liveData }) {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,18 +26,8 @@ export function MarketAnalytics({ marketId, outcomes }) {
 
   useEffect(() => {
     fetchAnalytics();
-    
-    // Listen for trade completed events to refresh analytics
-    const handleTradeCompleted = (event) => {
-      const changedMarketId = event?.detail?.marketId;
-      if (changedMarketId && changedMarketId !== marketId) return;
-      fetchAnalytics(true);
-    };
-    
-    window.addEventListener('tradeCompleted', handleTradeCompleted);
-    return () => {
-      window.removeEventListener('tradeCompleted', handleTradeCompleted);
-    };
+    // Optimization: We no longer listen for 'tradeCompleted' to re-fetch everything.
+    // Instead, we rely on the lightweight 'liveData' prop for critical updates (Volume/Trades).
   }, [marketId]);
 
   const fetchAnalytics = async (silent = false) => {
@@ -92,8 +82,8 @@ export function MarketAnalytics({ marketId, outcomes }) {
     {
       icon: DollarSign,
       label: "Total Volume",
-      value: `${analytics.totalVolume} tokens`,
-      subValue: `${analytics.totalTrades} trades`,
+      value: `${(liveData?.volume !== undefined ? liveData.volume : analytics.totalVolume).toLocaleString()} tokens`,
+      subValue: `${(liveData?.tradeCount !== undefined ? liveData.tradeCount : analytics.totalTrades).toLocaleString()} trades`,
       color: "text-green-500",
     },
     {
@@ -122,79 +112,79 @@ export function MarketAnalytics({ marketId, outcomes }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {metrics.map((metric, idx) => {
-        const Icon = metric.icon;
-        return (
-          <Card key={idx} className="hover:shadow-md transition-shadow">
+        {metrics.map((metric, idx) => {
+          const Icon = metric.icon;
+          return (
+            <Card key={idx} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className={`${metric.color} p-2 rounded-lg bg-opacity-10`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-muted-foreground mb-1">
+                      {metric.label}
+                    </div>
+                    <div className="text-lg font-semibold truncate">
+                      {metric.value}
+                    </div>
+                    {metric.subValue && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {metric.subValue}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+
+        {analytics.mostActiveTrader && (
+          <Card className="hover:shadow-md transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <div className={`${metric.color} p-2 rounded-lg bg-opacity-10`}>
-                  <Icon className="h-5 w-5" />
+                <div className="text-blue-500 p-2 rounded-lg bg-opacity-10">
+                  <BarChart3 className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm text-muted-foreground mb-1">
-                    {metric.label}
+                    Most Active Trader
                   </div>
                   <div className="text-lg font-semibold truncate">
-                    {metric.value}
+                    {analytics.mostActiveTrader.name}
                   </div>
-                  {metric.subValue && (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {metric.subValue}
-                    </div>
-                  )}
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {analytics.mostActiveTrader.tradeCount} trades
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-        );
-      })}
+        )}
 
-      {analytics.mostActiveTrader && (
-        <Card className="hover:shadow-md transition-shadow">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="text-blue-500 p-2 rounded-lg bg-opacity-10">
-                <BarChart3 className="h-5 w-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm text-muted-foreground mb-1">
-                  Most Active Trader
+        {analytics.largestHolder && (
+          <Card className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="text-green-500 p-2 rounded-lg bg-opacity-10">
+                  <Award className="h-5 w-5" />
                 </div>
-                <div className="text-lg font-semibold truncate">
-                  {analytics.mostActiveTrader.name}
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {analytics.mostActiveTrader.tradeCount} trades
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {analytics.largestHolder && (
-        <Card className="hover:shadow-md transition-shadow">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="text-green-500 p-2 rounded-lg bg-opacity-10">
-                <Award className="h-5 w-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm text-muted-foreground mb-1">
-                  Largest Position Holder
-                </div>
-                <div className="text-lg font-semibold truncate">
-                  {analytics.largestHolder.name}
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {analytics.largestHolder.totalShares} total shares
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-muted-foreground mb-1">
+                    Largest Position Holder
+                  </div>
+                  <div className="text-lg font-semibold truncate">
+                    {analytics.largestHolder.name}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {analytics.largestHolder.totalShares} total shares
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Charts Section */}

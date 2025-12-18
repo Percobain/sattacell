@@ -234,7 +234,14 @@ export function MarketDetail({ marketId }) {
                 <Activity className="h-5 w-5 text-primary" />
                 <h3 className="text-lg font-display">Market Analytics</h3>
               </div>
-              <MarketAnalytics marketId={marketId} outcomes={market.outcomes} />
+              <MarketAnalytics
+                marketId={marketId}
+                outcomes={market.outcomes}
+                liveData={{
+                  volume: market.volume,
+                  tradeCount: market.tradeCount
+                }}
+              />
             </div>
           )}
         </CardContent>
@@ -269,7 +276,7 @@ export function MarketDetail({ marketId }) {
             {showHistory ? "Recent trades in this market" : "Your current holdings"}
           </CardDescription>
         </CardHeader>
-          <CardContent>
+        <CardContent>
           {showHistory ? (
             <TradeHistory marketId={marketId} />
           ) : hasUserPosition ? (

@@ -80,19 +80,36 @@ export function ProbabilityChart({ marketId, outcomes }) {
     useEffect(() => {
         fetchHistory();
 
-        // Listen for trade completed events (from local trades or sockets)
-        const handleTradeCompleted = (event) => {
-            const changedMarketId = event?.detail?.marketId;
-            // If event is for another market, ignore. Local events (no detail) still refresh.
-            if (changedMarketId && changedMarketId !== marketId) return;
-            fetchHistory();
-        };
-        window.addEventListener('tradeCompleted', handleTradeCompleted);
+        // Optimize: Append new data point locally from lightweight socket event
+        // instead of re-fetching the whole history.
+        const handleMarketUpdate = (event) => {
+            const { _id, probabilities, status } = event.detail;
+            if (_id !== marketId) return;
 
-        return () => {
-            window.removeEventListener('tradeCompleted', handleTradeCompleted);
+            setHistoryData(prevData => {
+                const now = new Date();
+                const newDataPoint = {
+                    timestamp: now.getTime(),
+                    time: formatTime(now),
+                };
+                outcomes.forEach((outcome, idx) => {
+                    newDataPoint[outcome] = (probabilities[idx] || 0) * 100;
+                });
+
+                // Append new point
+                const newData = [...prevData, newDataPoint];
+                // Optional: limit growth if needed, e.g. .slice(-1000)
+                return filterByTimeRange(newData, timeRange);
+            });
+
+            setAnimationKey(prev => prev + 1);
         };
-    }, [marketId]);
+
+        window.addEventListener('marketUpdate', handleMarketUpdate);
+        return () => {
+            window.removeEventListener('marketUpdate', handleMarketUpdate);
+        };
+    }, [marketId, timeRange]); // Re-bind when timeRange changes to ensure filtering is correct
 
     const fetchHistory = async () => {
         try {
@@ -142,7 +159,8 @@ export function ProbabilityChart({ marketId, outcomes }) {
         }
     };
 
-    const formatTime = (date) => {
+    const formatTime = (dateInput) => {
+        const date = new Date(dateInput);
         const now = new Date();
         const diffMs = now - date;
         const diffHours = diffMs / (1000 * 60 * 60);
@@ -302,11 +320,11 @@ export function ProbabilityChart({ marketId, outcomes }) {
                         <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center">
                             {pieData.map((entry, index) => (
                                 <div key={index} className="flex items-center gap-1.5">
-                                    <div 
-                                        className="w-3 h-3 rounded-sm shrink-0" 
+                                    <div
+                                        className="w-3 h-3 rounded-sm shrink-0"
                                         style={{ backgroundColor: entry.color }}
                                     />
-                                    <span 
+                                    <span
                                         className="text-xs font-mono whitespace-nowrap"
                                         style={{ color: entry.color }}
                                     >
@@ -388,11 +406,11 @@ export function ProbabilityChart({ marketId, outcomes }) {
                     <div className="flex flex-wrap gap-x-5 gap-y-2 justify-center">
                         {outcomes.map((outcome, idx) => (
                             <div key={idx} className="flex items-center gap-2">
-                                <div 
-                                    className="w-3 h-3 rounded-sm shrink-0" 
+                                <div
+                                    className="w-3 h-3 rounded-sm shrink-0"
                                     style={{ backgroundColor: COLORS[idx % COLORS.length] }}
                                 />
-                                <span 
+                                <span
                                     className="text-xs font-mono whitespace-nowrap"
                                     style={{ color: COLORS[idx % COLORS.length] }}
                                 >
