@@ -37,6 +37,18 @@ router.post(
       );
 
       res.json(result);
+
+      // Broadcast trade event to all connected clients for realtime updates
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('trade:executed', {
+          marketId,
+          outcomeIndex,
+          sharesDelta: parseFloat(sharesDelta),
+          cost: result.trade.cost,
+          userId: req.user._id,
+        });
+      }
     } catch (error) {
       next(error);
     }
@@ -82,6 +94,18 @@ router.post(
       );
 
       res.json(result);
+
+      // Broadcast sell trade event to all connected clients
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('trade:executed', {
+          marketId,
+          outcomeIndex,
+          sharesDelta: -parseFloat(shares),
+          cost: result.trade.cost,
+          userId: req.user._id,
+        });
+      }
     } catch (error) {
       next(error);
     }

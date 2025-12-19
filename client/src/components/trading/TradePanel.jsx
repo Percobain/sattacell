@@ -8,6 +8,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/services/api";
 import { useMarket } from "@/hooks/useMarkets";
+import { useTrades } from "@/hooks/useTrades";
 import { SkeletonTradePanel } from "@/components/ui/Skeleton";
 import {
   TrendingUp,
@@ -24,6 +25,7 @@ import {
 export function TradePanel({ marketId }) {
   const { isAuthenticated, userData, refetchUserData } = useAuth();
   const { market, loading, refetch: refetchMarket } = useMarket(marketId);
+  const { trades: marketTrades, refetch: refetchTrades } = useTrades(marketId);
   const [selectedOutcome, setSelectedOutcome] = useState(0);
   const [shares, setShares] = useState("");
   const [tradeType, setTradeType] = useState("buy");
@@ -31,14 +33,78 @@ export function TradePanel({ marketId }) {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [previewCost, setPreviewCost] = useState(null);
+  const [avgEntryByOutcome, setAvgEntryByOutcome] = useState({});
+  const [positionCostByOutcome, setPositionCostByOutcome] = useState({});
+  const [sellPnlPreview, setSellPnlPreview] = useState(null);
 
   useEffect(() => {
     if (market && shares && parseFloat(shares) > 0) {
       calculatePreview();
     } else {
       setPreviewCost(null);
+      setSellPnlPreview(null);
     }
-  }, [shares, selectedOutcome, tradeType, market]);
+  }, [shares, selectedOutcome, tradeType, market, avgEntryByOutcome]);
+
+  // Recompute average entry prices and position cost per outcome when trades change
+  useEffect(() => {
+    if (!market || !marketTrades || marketTrades.length === 0) {
+      setAvgEntryByOutcome({});
+      setPositionCostByOutcome({});
+      return;
+    }
+
+    const byOutcome = {};
+    const positionCostMap = {};
+
+    market.outcomes.forEach((_, outcomeIdx) => {
+      const tradesForOutcome = marketTrades
+        .filter((t) => t.outcomeIndex === outcomeIdx)
+        .slice()
+        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+      let positionShares = 0;
+      let positionCost = 0;
+
+      tradesForOutcome.forEach((trade) => {
+        const sharesDelta = trade.sharesDelta;
+        const cost = trade.cost;
+
+        if (sharesDelta > 0) {
+          // Buy: add shares and cost
+          positionShares += sharesDelta;
+          positionCost += Math.abs(cost);
+        } else if (sharesDelta < 0 && positionShares > 0) {
+          // Sell: reduce cost basis using average cost
+          const sharesSold = Math.min(-sharesDelta, positionShares);
+          const avgCostPerShare = positionShares > 0 ? positionCost / positionShares : 0;
+          const costBasisSold = avgCostPerShare * sharesSold;
+          positionShares -= sharesSold;
+          positionCost -= costBasisSold;
+        }
+      });
+
+      if (positionShares > 0 && positionCost > 0) {
+        byOutcome[outcomeIdx] = positionCost / positionShares;
+        positionCostMap[outcomeIdx] = positionCost;
+      }
+    });
+
+    setAvgEntryByOutcome(byOutcome);
+    setPositionCostByOutcome(positionCostMap);
+  }, [market, marketTrades]);
+
+  // Refresh trades in this market when a trade completes anywhere
+  useEffect(() => {
+    const handleTradeCompleted = () => {
+      refetchTrades();
+    };
+
+    window.addEventListener("tradeCompleted", handleTradeCompleted);
+    return () => {
+      window.removeEventListener("tradeCompleted", handleTradeCompleted);
+    };
+  }, [refetchTrades]);
 
   // LMSR helper functions
   const calculateLMSRCost = (qBefore, qAfter, b) => {
@@ -77,6 +143,7 @@ export function TradePanel({ marketId }) {
         // Calculate actual LMSR cost
         const actualCost = calculateLMSRCost(qBefore, qAfter, b);
         setPreviewCost(actualCost);
+        setSellPnlPreview(null);
       } else {
         // For selling: subtract shares from selected outcome
         const qAfter = [...qBefore];
@@ -85,19 +152,31 @@ export function TradePanel({ marketId }) {
         // Ensure we don't go negative
         if (qAfter[selectedOutcome] < 0) {
           setPreviewCost(null);
+          setSellPnlPreview(null);
           return;
         }
         
         // Calculate actual LMSR cost (will be negative for sells)
         const actualCost = calculateLMSRCost(qBefore, qAfter, b);
         // For sells, cost is negative (you receive tokens), so we show the absolute value
-        setPreviewCost(Math.abs(actualCost));
+        const proceeds = Math.abs(actualCost);
+        setPreviewCost(proceeds);
+
+        const avgEntry = avgEntryByOutcome[selectedOutcome] || 0;
+        if (avgEntry > 0) {
+          const sharesToSell = sharesNum;
+          const tradePnl = proceeds - avgEntry * sharesToSell;
+          setSellPnlPreview(tradePnl);
+        } else {
+          setSellPnlPreview(null);
+        }
       }
     } catch (err) {
       console.error("Preview calculation error:", err);
       // Fallback to simple estimate if LMSR calculation fails
       const currentPrice = market.probabilities?.[selectedOutcome] || 0;
       setPreviewCost(parseFloat(shares) * currentPrice);
+      setSellPnlPreview(null);
     }
   };
 
@@ -214,11 +293,11 @@ export function TradePanel({ marketId }) {
             </Label>
             <Tooltip
               content={
-                <div className="space-y-2 text-xs">
-                  <p className="font-semibold text-primary mb-1">Current Market Probability:</p>
+                <div className="space-y-1.5 text-xs">
+                  <p className="font-semibold text-primary">Current Market Probability:</p>
                   <p>{(currentProbability * 100).toFixed(1)}% chance this outcome will win</p>
-                  <p className="mt-2 pt-2 border-t border-primary/20">
-                    Select the outcome you believe will happen. The probability is calculated based on current market activity and automatically updates as people trade.
+                  <p className="pt-1.5 border-t border-primary/20 text-xs">
+                    Probability updates automatically as people trade.
                   </p>
                 </div>
               }
@@ -267,9 +346,31 @@ export function TradePanel({ marketId }) {
 
         {/* Position info for sell */}
         {tradeType === "sell" && userPosition > 0 && (
-          <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm">
-            <span className="text-muted-foreground">You currently own:</span>
-            <span className="ml-2 text-primary font-semibold font-mono">{userPosition.toFixed(2)} shares</span>
+          <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm space-y-1.5">
+            <div>
+              <span className="text-muted-foreground">You currently own:</span>
+              <span className="ml-2 text-primary font-semibold font-mono">
+                {userPosition.toFixed(2)} shares
+              </span>
+            </div>
+            {avgEntryByOutcome[selectedOutcome] && (
+              <div className="space-y-0.5 text-xs text-muted-foreground font-mono">
+                <div>
+                  Avg entry price:{" "}
+                  <span className="text-primary font-semibold">
+                    {avgEntryByOutcome[selectedOutcome].toFixed(4)} tokens / share
+                  </span>
+                </div>
+                {positionCostByOutcome[selectedOutcome] && (
+                  <div>
+                    You bought these shares for:{" "}
+                    <span className="text-primary font-semibold">
+                      {positionCostByOutcome[selectedOutcome].toFixed(2)} tokens
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -305,55 +406,75 @@ export function TradePanel({ marketId }) {
         {/* Cost preview */}
         {previewCost !== null && (
           <div className="p-3 bg-secondary/30 border border-primary/20 rounded-lg space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-1">
-                <span className="text-muted-foreground">You'll pay:</span>
-                <Tooltip
-                  content={
-                    <div className="space-y-2">
-                      <p className="font-semibold text-primary mb-2">How prediction markets work:</p>
-                      <ul className="space-y-1 text-xs list-disc list-inside">
-                        <li>You buy shares at a discount (less than 1 token per share)</li>
-                        <li>If your outcome wins, each share pays 1 token</li>
-                        <li>If it loses, you lose what you paid</li>
-                      </ul>
-                      <p className="text-xs mt-2 pt-2 border-t border-primary/20">
-                        <strong>Note:</strong> Cost is calculated using LMSR formula, which accounts for market depth and price impact. Larger orders may have higher per-share costs.
-                      </p>
-                    </div>
-                  }
-                  side="top"
-                >
-                  <Info className="h-3 w-3 text-primary/60 hover:text-primary cursor-help" />
-                </Tooltip>
-              </div>
-              <span className="font-mono font-semibold text-primary">
-                {previewCost.toFixed(2)} tokens
-              </span>
-            </div>
-            {tradeType === "buy" && shares && (
+            {tradeType === "buy" && (
               <>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">If you win, you'll get:</span>
-                  <span className="font-mono font-semibold text-neon-green">
-                    {parseFloat(shares).toFixed(2)} tokens
+                  <div className="flex items-center gap-1">
+                    <span className="text-muted-foreground">You'll pay:</span>
+                    <Tooltip
+                      content={
+                        <div className="space-y-2">
+                          <p className="font-semibold text-primary mb-2">How prediction markets work:</p>
+                          <ul className="space-y-1 text-xs list-disc list-inside">
+                            <li>You buy shares at a discount (less than 1 token per share)</li>
+                            <li>If your outcome wins, each share pays 1 token</li>
+                            <li>If it loses, you lose what you paid</li>
+                          </ul>
+                          <p className="text-xs mt-2 pt-2 border-t border-primary/20">
+                            <strong>Note:</strong> Cost is calculated using LMSR formula, which accounts for market depth and price impact. Larger orders may have higher per-share costs.
+                          </p>
+                        </div>
+                      }
+                      side="top"
+                    >
+                      <Info className="h-3 w-3 text-primary/60 hover:text-primary cursor-help" />
+                    </Tooltip>
+                  </div>
+                  <span className="font-mono font-semibold text-primary">
+                    {previewCost.toFixed(2)} tokens
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm pt-1 border-t border-primary/10">
-                  <span className="text-muted-foreground">Your profit if you win:</span>
-                  <span className="font-mono font-semibold text-neon-green">
-                    +{(parseFloat(shares) - previewCost).toFixed(2)} tokens
-                  </span>
-                </div>
+                {shares && (
+                  <>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">If you win, you'll get:</span>
+                      <span className="font-mono font-semibold text-neon-green">
+                        {parseFloat(shares).toFixed(2)} tokens
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm pt-1 border-t border-primary/10">
+                      <span className="text-muted-foreground">Your profit if you win:</span>
+                      <span className="font-mono font-semibold text-neon-green">
+                        +{(parseFloat(shares) - previewCost).toFixed(2)} tokens
+                      </span>
+                    </div>
+                  </>
+                )}
               </>
             )}
+
             {tradeType === "sell" && shares && userPosition > 0 && (
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">You'll receive:</span>
-                <span className="font-mono font-semibold text-neon-green">
-                  {previewCost.toFixed(2)} tokens
-                </span>
-              </div>
+              <>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">You'll receive:</span>
+                  <span className="font-mono font-semibold text-neon-green">
+                    {previewCost.toFixed(2)} tokens
+                  </span>
+                </div>
+                {sellPnlPreview !== null && (
+                  <div className="flex items-center justify-between text-sm pt-1 border-t border-primary/10">
+                    <span className="text-muted-foreground">Realized PnL for this sell:</span>
+                    <span
+                      className={`font-mono font-semibold ${
+                        sellPnlPreview >= 0 ? "text-neon-green" : "text-destructive"
+                      }`}
+                    >
+                      {sellPnlPreview >= 0 ? "+" : "-"}
+                      {Math.abs(sellPnlPreview).toFixed(2)} tokens
+                    </span>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

@@ -24,13 +24,16 @@ export function MarketDetail({ marketId }) {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showChart, setShowChart] = useState(true);
 
-  // Listen for trade completed events to refresh market data (positions)
+  // Keep market data (and leading outcome) in sync with live trading
   useEffect(() => {
     const handleTradeCompleted = () => {
-      refetchMarket();
+      // Background refresh so the page doesn't jump back to skeletons
+      refetchMarket({ silent: true });
     };
 
+    // Refresh immediately when a trade completes
     window.addEventListener('tradeCompleted', handleTradeCompleted);
+
     return () => {
       window.removeEventListener('tradeCompleted', handleTradeCompleted);
     };
@@ -231,7 +234,14 @@ export function MarketDetail({ marketId }) {
                 <Activity className="h-5 w-5 text-primary" />
                 <h3 className="text-lg font-display">Market Analytics</h3>
               </div>
-              <MarketAnalytics marketId={marketId} outcomes={market.outcomes} />
+              <MarketAnalytics
+                marketId={marketId}
+                outcomes={market.outcomes}
+                liveData={{
+                  volume: market.volume,
+                  tradeCount: market.tradeCount
+                }}
+              />
             </div>
           )}
         </CardContent>
@@ -268,7 +278,7 @@ export function MarketDetail({ marketId }) {
         </CardHeader>
         <CardContent>
           {showHistory ? (
-            <TradeHistory marketId={marketId} outcomes={market.outcomes} />
+            <TradeHistory marketId={marketId} />
           ) : hasUserPosition ? (
             <div className="space-y-2">
               {Object.entries(market.userPosition).map(([outcomeIndex, shares]) => (
