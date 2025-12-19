@@ -8,6 +8,7 @@ import { CreateMarket } from "./CreateMarket";
 import { SettleMarket } from "./SettleMarket";
 import { GrantTokens } from "./GrantTokens";
 import { PendingUsers } from "./PendingUsers";
+import { GameControls } from "./GameControls";
 import { api } from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft } from "lucide-react";
@@ -183,12 +184,20 @@ export function AdminPanel() {
         >
           Grant Tokens
         </Button>
+        <Button
+          variant={activeTab === "controls" ? "default" : "ghost"}
+          onClick={() => setActiveTab("controls")}
+          className={activeTab !== "controls" ? "text-foreground" : ""}
+        >
+          Game Controls
+        </Button>
       </div>
 
       {activeTab === "approvals" && <PendingUsers />}
       {activeTab === "create" && <CreateMarket />}
       {activeTab === "settle" && <SettleMarket />}
       {activeTab === "grant" && <GrantTokens />}
+      {activeTab === "controls" && <GameControls />}
     </div>
   );
 }

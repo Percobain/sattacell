@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const Team = require('../models/Team');
 const Vote = require('../models/Vote');
 const User = require('../models/User');
+const SystemConfig = require('../models/SystemConfig');
 
 // Seed Teams Data
 const TEAMS_DATA = [
@@ -100,6 +101,12 @@ router.post('/vote', async (req, res) => {
   try {
     const { firebaseUID, teamId, amount } = req.body;
     
+    // Check if voting is active
+    const config = await SystemConfig.findOne({ key: 'GLOBAL_CONFIG' });
+    if (config && !config.isVotingActive) {
+      throw new Error('Voting has ended');
+    }
+
     if (!firebaseUID || !teamId || !amount || amount <= 0) {
       throw new Error('Invalid input data');
     }

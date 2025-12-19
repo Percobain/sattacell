@@ -6,6 +6,7 @@ const { requireAdmin, verifyAdminPassword } = require('../middleware/admin');
 const Market = require('../models/Market');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
+const SystemConfig = require('../models/SystemConfig');
 const { settleMarket } = require('../services/settlementService');
 const { AppError } = require('../utils/errors');
 
@@ -232,6 +233,46 @@ router.delete('/users/:userId/reject', authenticate, requireAdmin, async (req, r
     await User.findByIdAndDelete(userId);
 
     res.json({ success: true, message: 'User request rejected and removed' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/admin/config
+ * Get system configuration
+ */
+router.get('/config', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    let config = await SystemConfig.findOne({ key: 'GLOBAL_CONFIG' });
+    if (!config) {
+      config = await SystemConfig.create({ key: 'GLOBAL_CONFIG' });
+    }
+    res.json({ config });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/admin/config
+ * Update system configuration
+ */
+router.post('/config', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const { isVotingActive } = req.body;
+    
+    let config = await SystemConfig.findOne({ key: 'GLOBAL_CONFIG' });
+    if (!config) {
+      config = await SystemConfig.create({ key: 'GLOBAL_CONFIG', isVotingActive });
+    } else {
+      if (typeof isVotingActive !== 'undefined') {
+        config.isVotingActive = isVotingActive;
+      }
+      await config.save();
+    }
+    
+    res.json({ success: true, config });
   } catch (error) {
     next(error);
   }

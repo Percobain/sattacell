@@ -18,10 +18,23 @@ export function Home() {
   const [myVotes, setMyVotes] = useState({});
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
+  const [isVotingActive, setIsVotingActive] = useState(true);
+
+  const fetchConfig = async () => {
+    try {
+      const { config } = await api.get('/admin/config');
+      if (config) {
+        setIsVotingActive(config.isVotingActive);
+      }
+    } catch (error) {
+       console.error("Error fetching config:", error);
+    }
+  };
 
   // Fetch Team Data
   const fetchData = async () => {
     try {
+      await fetchConfig(); // Fetch config alongside team data
       const teamsData = await api.get('/teams');
       setTeams(teamsData);
       
@@ -178,6 +191,12 @@ export function Home() {
             <span className="text-muted-foreground font-mono text-xs hidden md:inline">チームの詳細</span>
           </div>
 
+          {!isVotingActive && (
+            <div className="bg-destructive/10 text-destructive p-4 rounded-lg mb-6 text-center font-bold border border-destructive/20 animate-pulse">
+              VOTING HAS ENDED • RESULTS PENDING
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
              {teams.map((team, index) => {
               const myVoteCount = myVotes[team._id] || 0;
@@ -206,8 +225,9 @@ export function Home() {
                       variant="neon" 
                       className="w-full h-8 text-xs md:text-sm"
                       onClick={() => handleVoteClick(team)}
+                      disabled={!isVotingActive}
                     >
-                      VOTE NOW
+                      {isVotingActive ? "VOTE NOW" : "VOTING ENDED"}
                     </Button>
                   </div>
                 </div>
