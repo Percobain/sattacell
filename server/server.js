@@ -12,6 +12,7 @@ const marketRoutes = require('./routes/markets');
 const tradeRoutes = require('./routes/trades');
 const userRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
+const teamRoutes = require('./routes/teams');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -39,6 +40,7 @@ app.use('/api/markets', marketRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/teams', teamRoutes);
 
 // Error handler
 app.use(errorHandler);

@@ -1,16 +1,68 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MarketList } from "@/components/markets/MarketList";
 import { LoginButton } from "@/components/auth/LoginButton";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import logo from "/CodeCell Logo White.png";
-
+import { api } from "@/services/api";
+import { VoteModal } from "@/components/teams/VoteModal";
 import { LandingPage } from "@/pages/LandingPage";
 
 export function Home() {
   const { isAuthenticated, userData } = useAuth();
   const [activeView, setActiveView] = useState("markets"); // Default to markets
+  
+  // Teams State - Restored for Quadratic Voting
+  const [teams, setTeams] = useState([]);
+  const [myVotes, setMyVotes] = useState({});
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
+  const [isVotingActive, setIsVotingActive] = useState(true);
+
+  const fetchConfig = async () => {
+    try {
+      const { config } = await api.get('/admin/config');
+      if (config) {
+        setIsVotingActive(config.isVotingActive);
+      }
+    } catch (error) {
+       console.error("Error fetching config:", error);
+    }
+  };
+
+  // Fetch Team Data
+  const fetchData = async () => {
+    try {
+      await fetchConfig(); // Fetch config alongside team data
+      const teamsData = await api.get('/teams');
+      setTeams(teamsData);
+      
+      if (userData?.firebaseUID) {
+        const votesData = await api.get(`/teams/my-votes?firebaseUID=${userData.firebaseUID}`);
+        const votesMap = {};
+        votesData.forEach(v => {
+           if (v.team && v.team._id) {
+             votesMap[v.team._id] = v.count;
+           }
+        });
+        setMyVotes(votesMap);
+      }
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [userData, isAuthenticated]);
+
+  const handleVoteClick = (team) => {
+    setSelectedTeam(team);
+    setIsVoteModalOpen(true);
+  };
 
   if (!isAuthenticated) {
     return <LandingPage />;
@@ -137,125 +189,60 @@ export function Home() {
             <span className="text-muted-foreground font-mono text-xs hidden md:inline">チームの詳細</span>
           </div>
 
+          {!isVotingActive && (
+            <div className="bg-destructive/10 text-destructive p-4 rounded-lg mb-6 text-center font-bold border border-destructive/20 animate-pulse">
+              VOTING HAS ENDED • RESULTS PENDING
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {/* Team 01 */}
-          <div className="border border-primary/30 bg-card/50 p-4 md:p-5 hover:border-primary/60 hover:glow-blue transition-all duration-300">
-            <div className="flex items-center gap-2 mb-1 pb-2 border-b border-primary/20">
-              <span className="text-neon-green font-mono text-xs">[01]</span>
-              <h3 className="text-lg font-display text-primary">GADA ELECTRONICS</h3>
-            </div>
-            <ul className="space-y-1.5 font-mono text-sm">
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Vinayak Pai
-              </li>
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Dhanya Shukla
-              </li>
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Samaira Sharma
-              </li>
-            </ul>
-          </div>
-
-          {/* Team 02 */}
-          <div className="border border-primary/30 bg-card/50 p-4 md:p-5 hover:border-primary/60 hover:glow-blue transition-all duration-300">
-            <div className="flex items-center gap-2 mb-1 pb-2 border-b border-primary/20">
-              <span className="text-neon-green font-mono text-xs">[02]</span>
-              <h3 className="text-lg font-display text-primary">DUKH DARD KASHT PEEDA</h3>
-            </div>
-            <ul className="space-y-1.5 font-mono text-sm">
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Tanuj Adarkar
-              </li>
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Parth Panwar
-              </li>
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Divyanshi Yadav
-              </li>
-            </ul>
-          </div>
-
-          {/* Team 03 */}
-          <div className="border border-primary/30 bg-card/50 p-4 md:p-5 hover:border-primary/60 hover:glow-blue transition-all duration-300">
-            <div className="flex items-center gap-2 mb-1 pb-2 border-b border-primary/20">
-              <span className="text-neon-green font-mono text-xs">[03]</span>
-              <h3 className="text-lg font-display text-primary">DEVELOPING DIVAS</h3>
-            </div>
-            <ul className="space-y-1.5 font-mono text-sm">
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Shantanav Mukherjee
-              </li>
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Purva Pote
-              </li>
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Arshia Dang
-              </li>
-            </ul>
-          </div>
-
-          {/* Team 04 */}
-          <div className="border border-primary/30 bg-card/50 p-4 md:p-5 hover:border-primary/60 hover:glow-blue transition-all duration-300">
-            <div className="flex items-center gap-2 mb-1 pb-2 border-b border-primary/20">
-              <span className="text-neon-green font-mono text-xs">[04]</span>
-              <h3 className="text-lg font-display text-primary">TEAM SHIRO</h3>
-            </div>
-            <ul className="space-y-1.5 font-mono text-sm">
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Shaurya Srivastava
-              </li>
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Dhruv Kumar
-              </li>
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Rudrakshi Acharyya
-              </li>
-            </ul>
-          </div>
-
-          {/* Team 05 */}
-          <div className="border border-primary/30 bg-card/50 p-4 md:p-5 hover:border-primary/60 hover:glow-blue transition-all duration-300">
-            <div className="flex items-center gap-2 mb-1 pb-2 border-b border-primary/20">
-              <span className="text-neon-green font-mono text-xs">[05]</span>
-              <h3 className="text-lg font-display text-primary">TEAM ANYHOW</h3>
-            </div>
-            <ul className="space-y-1.5 font-mono text-sm">
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Samagra Agarwal
-              </li>
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Srushti Talandage
-              </li>
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Bhoumik Sangle
-              </li>
-            </ul>
-          </div>
-
-          {/* Team 06 */}
-          <div className="border border-primary/30 bg-card/50 p-4 md:p-5 hover:border-primary/60 hover:glow-blue transition-all duration-300">
-            <div className="flex items-center gap-2 mb-1 pb-2 border-b border-primary/20">
-              <span className="text-neon-green font-mono text-xs">[06]</span>
-              <h3 className="text-lg font-display text-primary">CODE MY CELLS</h3>
-            </div>
-            <ul className="space-y-1.5 font-mono text-sm">
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Anmol Rai
-              </li>
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Ashwera Hasan
-              </li>
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Shravika Mhatre
-              </li>
-              <li className="text-foreground/90 flex items-center gap-2">
-                <span className="text-primary/50">▸</span> Yash Agroya
-              </li>
-            </ul>
-          </div>
+             {teams.map((team, index) => {
+              const myVoteCount = myVotes[team._id] || 0;
+              return (
+                <div key={team._id} className="border border-primary/30 bg-card/50 p-4 md:p-5 hover:border-primary/60 hover:glow-blue transition-all duration-300 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1 pb-2 border-b border-primary/20">
+                      <span className="text-neon-green font-mono text-xs">[{String(index + 1).padStart(2, '0')}]</span>
+                      <h3 className="text-lg font-display text-primary uppercase">{team.name}</h3>
+                    </div>
+                    <ul className="space-y-1.5 font-mono text-sm mb-4">
+                      {team.members.map((member, i) => (
+                        <li key={i} className="text-foreground/90 flex items-center gap-2">
+                          <span className="text-primary/50">▸</span> {member}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div className="mt-auto pt-4 border-t border-primary/10">
+                    <div className="flex justify-between items-center mb-3 text-xs font-mono">
+                       <span className="text-muted-foreground">Total Votes: <span className="text-primary">{team.voteCount}</span></span>
+                       <span className="text-muted-foreground">Your Votes: <span className="text-neon-green">{myVoteCount}</span></span>
+                    </div>
+                    <Button 
+                      variant="neon" 
+                      className="w-full h-8 text-xs md:text-sm"
+                      onClick={() => handleVoteClick(team)}
+                      disabled={!isVotingActive}
+                    >
+                      {isVotingActive ? "VOTE NOW" : "VOTING ENDED"}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
+      )}
+      
+      {selectedTeam && (
+        <VoteModal
+          isOpen={isVoteModalOpen}
+          onClose={() => setIsVoteModalOpen(false)}
+          team={selectedTeam}
+          currentVotes={myVotes[selectedTeam._id] || 0}
+          onVoteSuccess={fetchData}
+        />
       )}
     </div>
   );

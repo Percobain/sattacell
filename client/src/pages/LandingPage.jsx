@@ -1,4 +1,5 @@
 import { LoginButton } from "@/components/auth/LoginButton";
+import { Button } from "@/components/ui/button";
 import logo from "/CodeCell Logo White.png";
 
 export function LandingPage() {

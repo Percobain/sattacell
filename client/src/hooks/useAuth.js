@@ -13,6 +13,7 @@ export function useAuth() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // const [error, setError] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('auth_token'));
 
   // Handle OAuth callback
@@ -42,6 +43,8 @@ export function useAuth() {
 
         // Clean up URL
         window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (data.error) {
+        setError(data.error);
       } else if (data.error) {
         setError(data.error);
       }
@@ -107,5 +110,6 @@ export function useAuth() {
     isAuthenticated: !!token && !!userData,
     error,
     refetchUserData,
+    error,
   };
 }
