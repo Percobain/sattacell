@@ -64,7 +64,7 @@ export function GrantTokens() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="user@somaiya.edu"
+              placeholder="user@gmail.com"
               required
             />
           </div>

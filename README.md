@@ -44,7 +44,7 @@ The Logarithmic Market Scoring Rule ensures:
 - **Real-time Probabilities**: Dynamic probability calculation using LMSR
 - **User Positions**: Track your holdings across all markets
 - **Analytics Dashboard**: Comprehensive market analytics with 10+ visualizations
-- **Authentication**: Google OAuth restricted to `@somaiya.edu` emails
+- **Authentication**: Google OAuth restricted to `@gmail.com` emails
 - **Admin Panel**: Password-protected admin interface for market management
 
 ### Advanced Features
@@ -357,9 +357,8 @@ VITE_CLARITY_PROJECT_ID=your_clarity_project_id
 - Add authorized redirect URIs:
   - `http://localhost:5173/auth/callback` (development)
   - `https://your-production-url.com/auth/callback` (production)
-- Restrict to `@somaiya.edu` domain in OAuth consent screen
 
-6. **Set up admin user**
+1. **Set up admin user**
 
 ```bash
 cd server
@@ -467,7 +466,7 @@ sattacell/
 
 ### For Users
 
-1. **Sign In**: Click "Sign in with Google" (must use `@somaiya.edu` email)
+1. **Sign In**: Click "Sign in with Google"
 2. **Browse Markets**: View all open markets on the home page
 3. **View Market**: Click on a market to see probabilities and analytics
 4. **Trade**: Use the trading panel to buy/sell shares
