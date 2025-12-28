@@ -19,6 +19,7 @@ import { Dice } from "./pages/casino/Dice";
 import { Roulette } from "./pages/casino/Roulette";
 import { Blackjack } from "./pages/casino/Blackjack";
 import { CoinFlip } from "./pages/casino/CoinFlip";
+import { Poker } from "./pages/casino/Poker";
 import { useEffect } from "react";
 import { io } from "socket.io-client";
 
@@ -52,6 +53,43 @@ function AppContent() {
           } />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/pending-approval" element={<PendingApprovalPage />} />
+          
+          {/* Casino Routes */}
+          <Route path="/casino" element={
+            <ProtectedRoute>
+              <CasinoPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/mines" element={
+            <ProtectedRoute>
+              <Mines />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/plinko" element={
+            <ProtectedRoute>
+              <Plinko />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/dice" element={
+            <ProtectedRoute>
+              <Dice />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/roulette" element={
+            <ProtectedRoute>
+              <Roulette />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/blackjack" element={
+            <ProtectedRoute>
+              <Blackjack />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/coinflip" element={
+             <ProtectedRoute>
+              <CoinFlip />
+             </ProtectedRoute>
+          } />
           
           {/* Casino Routes */}
           <Route path="/casino" element={
@@ -240,6 +278,11 @@ function App() {
             <Route path="/casino/coinflip" element={
                <ProtectedRoute>
                 <CoinFlip />
+               </ProtectedRoute>
+            } />
+            <Route path="/casino/poker" element={
+               <ProtectedRoute>
+                <Poker />
                </ProtectedRoute>
             } />
           </Routes>

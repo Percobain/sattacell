@@ -13,6 +13,7 @@ const games = [
   { id: 'roulette', name: 'Roulette', icon: <Disc className="w-8 h-8 animate-spin-slow" />, color: 'from-red-500 to-red-600', desc: 'Spin the wheel.' },
   { id: 'blackjack', name: 'Blackjack', icon: <Gamepad2 className="w-8 h-8" />, color: 'from-green-500 to-emerald-600', desc: 'Beat the dealer to 21.' },
   { id: 'coinflip', name: 'Coin Flip', icon: <Coins className="w-8 h-8" />, color: 'from-yellow-300 to-yellow-500', desc: 'Double or nothing.' },
+  { id: 'poker', name: 'Poker', icon: <Box className="w-8 h-8" />, color: 'from-indigo-500 to-purple-600', desc: 'Texas Hold\'em PvP.' },
 ];
 
 export const CasinoPage = () => {

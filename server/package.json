@@ -19,6 +19,7 @@
     "express-validator": "^7.0.1",
     "google-auth-library": "^9.15.1",
     "mongoose": "^8.0.0",
+    "pokersolver": "^2.1.4",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
