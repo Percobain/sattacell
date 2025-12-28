@@ -32,9 +32,10 @@ async function verifyIdToken(idToken) {
 
     const payload = ticket.getPayload();
     
-    // Verify email domain
-    if (!payload.email || !payload.email.endsWith('@somaiya.edu')) {
-      throw new Error('Invalid email domain. Only @somaiya.edu emails are allowed.');
+    // Verify email domain - allow both @gmail.com and @somaiya.edu
+    const allowedDomains = ['@gmail.com', '@somaiya.edu'];
+    if (!payload.email || !allowedDomains.some(domain => payload.email.endsWith(domain))) {
+      throw new Error('Invalid email domain. Only @gmail.com and @somaiya.edu emails are allowed.');
     }
 
     return {
@@ -71,7 +72,6 @@ function getAuthUrl() {
   return requestClient.generateAuthUrl({
     access_type: 'offline',
     scope: scopes,
-    hd: 'somaiya.edu', // Restrict to somaiya.edu domain
     prompt: 'consent',
     redirect_uri: redirectUri, // Explicitly set redirect URI
   });
@@ -101,9 +101,10 @@ async function getTokens(code) {
 
     const payload = ticket.getPayload();
     
-    // Verify email domain
-    if (!payload.email || !payload.email.endsWith('@somaiya.edu')) {
-      throw new Error('Invalid email domain. Only @somaiya.edu emails are allowed.');
+    // Verify email domain - allow both @gmail.com and @somaiya.edu
+    const allowedDomains = ['@gmail.com', '@somaiya.edu'];
+    if (!payload.email || !allowedDomains.some(domain => payload.email.endsWith(domain))) {
+      throw new Error('Invalid email domain. Only @gmail.com and @somaiya.edu emails are allowed.');
     }
 
     return {
