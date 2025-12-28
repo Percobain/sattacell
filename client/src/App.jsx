@@ -90,6 +90,43 @@ function AppContent() {
               <CoinFlip />
              </ProtectedRoute>
           } />
+          
+          {/* Casino Routes */}
+          <Route path="/casino" element={
+            <ProtectedRoute>
+              <CasinoPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/mines" element={
+            <ProtectedRoute>
+              <Mines />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/plinko" element={
+            <ProtectedRoute>
+              <Plinko />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/dice" element={
+            <ProtectedRoute>
+              <Dice />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/roulette" element={
+            <ProtectedRoute>
+              <Roulette />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/blackjack" element={
+            <ProtectedRoute>
+              <Blackjack />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/coinflip" element={
+             <ProtectedRoute>
+              <CoinFlip />
+             </ProtectedRoute>
+          } />
         </Routes>
       </div>
 
