@@ -13,6 +13,7 @@ const tradeRoutes = require('./routes/trades');
 const userRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
 const teamRoutes = require('./routes/teams');
+const casinoRoutes = require('./routes/casino');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,6 +42,7 @@ app.use('/api/trades', tradeRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/teams', teamRoutes);
+app.use('/api/casino', casinoRoutes);
 
 // Error handler
 app.use(errorHandler);

@@ -106,6 +106,7 @@ export function Home() {
               <Link to="/dashboard">
                 <Button variant="neon" size="sm" className="md:size-default">Dashboard</Button>
               </Link>
+            
             </>
           )}
           <Link to="/admin">
@@ -138,6 +139,13 @@ export function Home() {
           >
             TEAMS
           </button>
+          <span className="text-primary/50">|</span>
+          <Link
+             to="/casino"
+             className="cursor-pointer hover:text-primary transition-colors"
+          >
+            CASINO
+          </Link>
         </div>
         <div className="flex items-center gap-4">
           <span>BATCH: {new Date().toISOString().split('T')[0]}</span>
