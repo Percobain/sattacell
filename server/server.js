@@ -63,6 +63,9 @@ app.set('io', io);
 const { initRealtimeService } = require('./services/realtimeService');
 const changeStream = initRealtimeService(io);
 
+// Initialize Poker Handlers
+require('./socket/pokerHandler')(io);
+
 io.on('connection', (socket) => {
   console.log('Client connected', socket.id);
 

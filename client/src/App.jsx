@@ -19,6 +19,7 @@ import { Dice } from "./pages/casino/Dice";
 import { Roulette } from "./pages/casino/Roulette";
 import { Blackjack } from "./pages/casino/Blackjack";
 import { CoinFlip } from "./pages/casino/CoinFlip";
+import { Poker } from "./pages/casino/Poker";
 import { useEffect } from "react";
 import { io } from "socket.io-client";
 
@@ -240,6 +241,11 @@ function App() {
             <Route path="/casino/coinflip" element={
                <ProtectedRoute>
                 <CoinFlip />
+               </ProtectedRoute>
+            } />
+            <Route path="/casino/poker" element={
+               <ProtectedRoute>
+                <Poker />
                </ProtectedRoute>
             } />
           </Routes>
