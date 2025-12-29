@@ -10,12 +10,12 @@ export const PokerTable = ({ gameState, myPlayerId }) => {
     // Helper to get seat position using geometry for a better ellipse distribution
     // We stick to fixed 6-max layout for simplicity
     const seatStyles = [
-        { bottom: '-20px', left: '50%', transform: 'translate(-50%, 0)' }, // Hero (Bottom)
-        { bottom: '20%', left: '-20px', transform: 'translate(0, 50%)' }, // Bottom Left
-        { top: '20%', left: '-20px', transform: 'translate(0, -50%)' },   // Top Left
-        { top: '-20px', left: '50%', transform: 'translate(-50%, 0)' },   // Top (Villain)
-        { top: '20%', right: '-20px', transform: 'translate(0, -50%)' },  // Top Right
-        { bottom: '20%', right: '-20px', transform: 'translate(0, 50%)' } // Bottom Right
+        { bottom: '-10%', left: '50%', transform: 'translate(-50%, 0)' }, // Hero (Bottom) - Moved up slightly relative to container bottom, relying on container padding
+        { bottom: '20%', left: '-10%', transform: 'translate(0, 50%)' }, // Bottom Left
+        { top: '20%', left: '-10%', transform: 'translate(0, -50%)' },   // Top Left
+        { top: '-10%', left: '50%', transform: 'translate(-50%, 0)' },    // Top (Villain)
+        { top: '20%', right: '-10%', transform: 'translate(0, -50%)' },   // Top Right
+        { bottom: '20%', right: '-10%', transform: 'translate(0, 50%)' }  // Bottom Right
     ];
 
     // Rotate players array so "me" is at index 0 (bottom)
@@ -32,18 +32,41 @@ export const PokerTable = ({ gameState, myPlayerId }) => {
     }
 
     return (
-        <div className="relative w-full max-w-[900px] aspect-[16/9] md:aspect-[2/1] mx-auto my-12">
+        <div className="relative w-full max-w-[900px] aspect-[1/1] md:aspect-[2/1] mx-auto my-4 md:my-12 scale-90 md:scale-100">
              {/* Table Structure */}
              <div className="absolute inset-0 rounded-[100px] border-[20px] border-[#2a1a1a] bg-[#0f0f0f] shadow-2xl overflow-visible">
                 {/* Metallic Rim */}
                 <div className="absolute inset-[-10px] rounded-[110px] border-4 border-yellow-900/40 shadow-inner pointer-events-none" />
                 
                 {/* Felt Gradient */}
-                <div className="absolute inset-0 rounded-[80px] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-green-800 via-green-900 to-black shadow-inner flex items-center justify-center">
+                <div className="absolute inset-0 rounded-[80px] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-green-800 via-green-900 to-black shadow-inner flex flex-col items-center justify-center gap-8">
                     
                     {/* Center Logo/Texture */}
                     <div className="absolute opacity-10 pointer-events-none select-none">
                         <span className="text-6xl md:text-8xl font-black text-black tracking-tighter">HOLD'EM</span>
+                    </div>
+
+                    <div className="relative z-30 flex flex-col items-center gap-1">
+                        <div className="flex items-center gap-2 bg-black/60 px-4 py-1.5 rounded-full border border-yellow-500/20 shadow-lg backdrop-blur-md">
+                            <span className="text-yellow-500 text-xs font-bold tracking-widest">POT</span>
+                            <span className="text-white font-mono font-bold">${pot.toLocaleString()}</span>
+                        </div>
+                        
+                        {/* Winner Announcement */}
+                         <AnimatePresence>
+                            {winners && winners.length > 0 && (
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0 }}
+                                    className="absolute top-10 w-max bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold px-4 py-2 rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.5)] border border-white/20 z-50 text-center"
+                                >
+                                    <div className="text-sm uppercase tracking-wider opacity-80 decoration-slice">Winner</div>
+                                    <div className="text-lg">{winners.map(w => w.handDescription).join(', ')}</div>
+                                </motion.div>
+                                
+                            )}
+                        </AnimatePresence>
                     </div>
 
                     {/* Community Cards Area */}
@@ -67,28 +90,7 @@ export const PokerTable = ({ gameState, myPlayerId }) => {
                         ))}
                     </div>
 
-                    {/* Pot Info */}
-                    <div className="absolute bottom-[20%] left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10">
-                        <div className="flex items-center gap-2 bg-black/60 px-4 py-1.5 rounded-full border border-yellow-500/20 shadow-lg backdrop-blur-md">
-                            <span className="text-yellow-500 text-xs font-bold tracking-widest">POT</span>
-                            <span className="text-white font-mono font-bold">${pot.toLocaleString()}</span>
-                        </div>
-                        
-                        {/* Winner Announcement */}
-                         <AnimatePresence>
-                            {winners && winners.length > 0 && (
-                                <motion.div 
-                                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0 }}
-                                    className="absolute top-10 w-max bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold px-4 py-2 rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.5)] border border-white/20 z-50 text-center"
-                                >
-                                    <div className="text-sm uppercase tracking-wider opacity-80 decoration-slice">Winner</div>
-                                    <div className="text-lg">{winners.map(w => w.handDescription).join(', ')}</div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
+                    
                 </div>
             </div>
 
@@ -105,7 +107,7 @@ export const PokerTable = ({ gameState, myPlayerId }) => {
                 return (
                     <div 
                         key={player.id}
-                        className="absolute flex flex-col items-center"
+                        className="absolute flex flex-col items-center z-40"
                         style={style}
                     >
                         {/* Dealer Button */}
@@ -122,7 +124,7 @@ export const PokerTable = ({ gameState, myPlayerId }) => {
                         {player.bet > 0 && (
                             <motion.div 
                                 initial={{ scale: 0 }} animate={{ scale: 1 }}
-                                className="absolute -top-10 z-20 bg-yellow-500 text-black font-bold px-3 py-1 rounded-full shadow-lg border-2 border-white/20"
+                                className="absolute -top-16 z-20 bg-yellow-500 text-black font-bold px-3 py-1 rounded-full shadow-lg border-2 border-white/20"
                             >
                                 ${player.bet}
                             </motion.div>

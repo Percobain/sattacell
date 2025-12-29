@@ -285,6 +285,11 @@ function App() {
                 <Poker />
                </ProtectedRoute>
             } />
+            <Route path="/casino/poker/:shortCode" element={
+               <ProtectedRoute>
+                <Poker />
+               </ProtectedRoute>
+            } />
           </Routes>
         </div>
 
