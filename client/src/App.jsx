@@ -20,7 +20,6 @@ import { Roulette } from "./pages/casino/Roulette";
 import { Blackjack } from "./pages/casino/Blackjack";
 import { CoinFlip } from "./pages/casino/CoinFlip";
 import { Poker } from "./pages/casino/Poker";
-import { Poker } from "./pages/casino/Poker";
 import { useEffect } from "react";
 import { io } from "socket.io-client";
 
