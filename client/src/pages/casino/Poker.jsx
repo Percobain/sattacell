@@ -3,8 +3,9 @@ import { useAuth } from '../../hooks/useAuth';
 import { PokerTable } from '../../components/poker/PokerTable';
 import { PokerControls } from '../../components/poker/PokerControls';
 import { Button } from "@/components/ui/button";
-import { Link } from 'react-router-dom';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Loader2, ArrowLeft, Copy } from 'lucide-react';
 import { LoginButton } from "@/components/auth/LoginButton";
 import logo from "/CodeCell Logo White.png";
 import Dither from "@/components/ui/Dither";
@@ -16,8 +17,11 @@ export const Poker = () => {
     const [privateHand, setPrivateHand] = useState([]);
     const [error, setError] = useState('');
     const [socket, setSocket] = useState(null);
-
-
+    const [joinCode, setJoinCode] = useState('');
+    
+    // Routing
+    const { shortCode } = useParams();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const skt = window.__sattacellSocket;
@@ -39,18 +43,35 @@ export const Poker = () => {
         const handleError = (err) => {
             setError(err.message);
             setTimeout(() => setError(''), 3000);
+            // If error joining private room, maybe redirect to lobby?
+        };
+
+        const handleJoined = ({ tableId }) => {
+            if (tableId !== 'main-table') {
+                navigate(`/casino/poker/${tableId}`);
+            }
         };
 
         skt.on('poker:state', handleState);
         skt.on('poker:hand', handleHand);
         skt.on('poker:error', handleError);
+        skt.on('poker:joined', handleJoined);
 
         return () => {
             skt.off('poker:state', handleState);
             skt.off('poker:hand', handleHand);
             skt.off('poker:error', handleError);
+            skt.off('poker:joined', handleJoined);
         };
-    }, [userData]);
+    }, [userData, navigate]);
+
+    // Auto-join if shortCode exists and socket ready
+    useEffect(() => {
+        if (shortCode && socket && userData && !joined) {
+             // Attempt to join specific table
+             handleJoin(shortCode);
+        }
+    }, [shortCode, socket, userData, joined]);
 
     // Refetch balance when joining or leaving table
     useEffect(() => {
@@ -59,7 +80,7 @@ export const Poker = () => {
         }
     }, [joined, refetchUserData]);
 
-    const handleJoin = () => {
+    const handleJoin = (tableId = 'main-table') => {
         if (!socket || !userData) return;
         if (userData.balance < 1000) {
             setError('Insufficient funds to join table');
@@ -67,7 +88,7 @@ export const Poker = () => {
             return;
         }
         socket.emit('poker:join', { 
-            tableId: 'main-table', 
+            tableId, 
             user: { 
                 id: userData.firebaseUID,
                 name: userData.email?.split('@')[0],
@@ -77,19 +98,44 @@ export const Poker = () => {
         });
     };
 
+    const handleCreatePrivate = () => {
+        if (!socket || !userData) return;
+        if (userData.balance < 1000) {
+            setError('Insufficient funds');
+            return;
+        }
+        socket.emit('poker:create_private', {
+            user: {
+                id: userData.firebaseUID,
+                name: userData.email?.split('@')[0],
+                avatar: userData.photoURL
+            },
+            buyIn: 1000
+        });
+    };
+
     const handleLeave = () => {
         if (!socket) return;
-        socket.emit('poker:leave', { tableId: 'main-table' });
-
+        // If we are in a private room, leave that specific one?
+        // The socket handler looks up by socket.id so argument might be ignored but good to pass.
+        // Actually handler takes { tableId }
+        const currentTableId = gameState?.id || 'main-table';
+        socket.emit('poker:leave', { tableId: currentTableId });
+        navigate('/casino/poker'); // Return to lobby
     };
 
     const handleAction = (action, amount = 0) => {
         if (!socket) return;
         socket.emit('poker:action', { 
-            tableId: 'main-table', 
+            tableId: gameState?.id, 
             action, 
             amount 
         });
+    };
+
+    const handleStartGame = () => {
+        if (!socket || !gameState) return;
+        socket.emit('poker:start_game', { tableId: gameState.id });
     };
 
     const displayState = gameState ? {
@@ -104,6 +150,8 @@ export const Poker = () => {
 
     const myPlayer = displayState?.players.find(p => p.id === userData?.firebaseUID);
     const isMyTurn = displayState?.currentTurn === userData?.firebaseUID;
+    const isOwner = displayState?.ownerId === userData?.firebaseUID;
+    const showStartButton = isOwner && displayState?.isPrivate && !displayState?.hasStarted && displayState?.players.length >= 2;
 
     return (
         <div className="min-h-screen relative flex flex-col items-center bg-[#050505] overflow-hidden">
@@ -138,7 +186,7 @@ export const Poker = () => {
                                 onClick={handleLeave}
                                 className="mr-4 bg-red-900/20 hover:bg-red-900/40 text-red-500 border border-red-500/50"
                             >
-                                SIT OUT
+                                LEAVE TABLE
                             </Button>
                         )}
                         {isAuthenticated && (
@@ -164,9 +212,9 @@ export const Poker = () => {
             )}
 
             {/* Game Content */}
-            <div className="relative z-10 w-full flex-1 flex flex-col justify-center items-center p-4">
-                {!joined ? (
-                    <div className="text-center space-y-8 animate-in zoom-in-95 duration-500">
+            <div className="relative z-10 w-full flex-1 flex flex-col justify-center items-center p-4 pb-32 md:pb-24">
+                {!joined && !shortCode ? (
+                    <div className="text-center space-y-8 animate-in zoom-in-95 duration-500 w-full max-w-4xl">
                         <div className="space-y-2">
                             <h2 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-white/20 tracking-tighter">
                                 HIGH STAKES
@@ -174,24 +222,99 @@ export const Poker = () => {
                             <p className="text-xl text-green-500/80 font-mono tracking-widest">NO LIMIT HOLD'EM • ¥10/¥20</p>
                         </div>
                         
-                        <div className="relative group">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
-                            <Button 
-                                size="lg" 
-                                className="relative text-xl px-16 py-8 bg-black border border-green-500/50 hover:bg-green-950/30 text-white rounded-2xl transition-all"
-                                onClick={handleJoin}
-                                disabled={!socket || !isAuthenticated || (userData?.balance < 1000)}
-                            >
-                                {!isAuthenticated ? 'LOGIN TO PLAY' : userData?.balance < 1000 ? 'INSUFFICIENT FUNDS' : 'SIT DOWN (¥1000)'}
-                            </Button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+                            {/* Public Table */}
+                            <div className="relative group p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-green-500/50 transition-all">
+                                <h3 className="text-2xl font-bold text-white mb-4">PUBLIC TABLE</h3>
+                                <p className="text-muted-foreground mb-6 h-12">Join the main table and play with anyone currently online.</p>
+                                <Button 
+                                    size="lg" 
+                                    className="w-full text-lg py-6 bg-green-600 hover:bg-green-700 text-white rounded-xl"
+                                    onClick={() => handleJoin('main-table')}
+                                    disabled={!socket || !isAuthenticated || (userData?.balance < 1000)}
+                                >
+                                    JOIN PUBLIC
+                                </Button>
+                            </div>
+
+                            {/* Private Table */}
+                            <div className="relative group p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-purple-500/50 transition-all">
+                                <h3 className="text-2xl font-bold text-white mb-4">PRIVATE ROOM</h3>
+                                <div className="space-y-4">
+                                    <Button 
+                                        size="lg" 
+                                        className="w-full text-lg py-6 bg-purple-600 hover:bg-purple-700 text-white rounded-xl"
+                                        onClick={handleCreatePrivate}
+                                        disabled={!socket || !isAuthenticated || (userData?.balance < 1000)}
+                                    >
+                                        CREATE ROOM
+                                    </Button>
+                                    
+                                    <div className="flex gap-2">
+                                        <Input 
+                                            placeholder="Enter Room Code" 
+                                            className="bg-black/50 border-white/20 text-center font-mono uppercase"
+                                            value={joinCode}
+                                            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                                            maxLength={6}
+                                        />
+                                        <Button 
+                                            variant="outline"
+                                            className="border-white/20 hover:bg-white/10"
+                                            onClick={() => handleJoin(joinCode)}
+                                            disabled={!joinCode || joinCode.length < 6}
+                                        >
+                                            JOIN
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
-                        <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                        <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-8">
                             By joining, you agree to the Provably Fair protocol standards. Chips are deducted from your main wallet.
                         </p>
                     </div>
                 ) : (
                     <>
+                         {/* Room Info / Start Button */}
+                         {gameState?.isPrivate && (
+                            <div className="absolute top-24 right-4 z-40 flex flex-col items-end gap-2 animate-in slide-in-from-right">
+                                <div className="flex flex-col bg-black/60 backdrop-blur-md p-4 rounded-xl border border-white/10">
+                                    <span className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Room Code</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-2xl font-mono font-bold text-purple-400 tracking-widest select-all">
+                                            {gameState.id}
+                                        </span>
+                                        <Button 
+                                            size="icon" 
+                                            variant="ghost" 
+                                            className="h-8 w-8 hover:bg-white/10"
+                                            onClick={() => navigator.clipboard.writeText(window.location.href)}
+                                        >
+                                            <Copy className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {showStartButton && (
+                                    <Button 
+                                        size="lg" 
+                                        className="w-full bg-green-500 hover:bg-green-600 text-black font-bold animate-pulse text-lg shadow-[0_0_20px_rgba(34,197,94,0.6)]"
+                                        onClick={handleStartGame}
+                                    >
+                                        START GAME
+                                    </Button>
+                                )}
+                                
+                                {gameState.isPrivate && !gameState.hasStarted && !isOwner && (
+                                    <div className="bg-yellow-500/20 text-yellow-500 px-4 py-2 rounded-lg border border-yellow-500/50 backdrop-blur-md">
+                                        Waiting for host to start...
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <PokerTable 
                             gameState={displayState} 
                             myPlayerId={userData?.firebaseUID} 
@@ -208,8 +331,6 @@ export const Poker = () => {
                                 />
                             </div>
                         )}
-                        
-                        {/* Waiting Indicator if entered but not seated/started? (handled by Table visuals) */}
                     </>
                 )}
             </div>

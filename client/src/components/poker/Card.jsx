@@ -4,7 +4,7 @@ export const Card = ({ card, hidden, className = '' }) => {
   // If no card data provided (e.g. placeholder), render empty slot
   if (!card && !hidden) {
       return (
-        <div className={`w-14 h-20 md:w-16 md:h-24 rounded-md border-2 border-white/10 bg-white/5 mx-1 flex items-center justify-center ${className}`} />
+        <div className={`w-12 h-16 md:w-16 md:h-24 rounded-md border-2 border-white/10 bg-white/5 mx-1 flex items-center justify-center ${className}`} />
       );
   }
 
@@ -25,7 +25,7 @@ export const Card = ({ card, hidden, className = '' }) => {
 
   return (
     <div className={`
-      w-14 h-20 md:w-16 md:h-24 rounded-md border shadow-lg mx-1 flex items-center justify-center text-xl font-bold relative transition-transform hover:-translate-y-2 cursor-default
+      w-12 h-16 md:w-16 md:h-24 rounded-md border shadow-lg mx-1 flex items-center justify-center text-xl font-bold relative transition-transform hover:-translate-y-2 cursor-default
       ${hidden ? 'bg-red-900 border-white/10' : 'bg-white text-black border-white'}
       ${className}
     `}>

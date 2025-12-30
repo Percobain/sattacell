@@ -2,7 +2,7 @@ const { Hand } = require('pokersolver');
 const crypto = require('crypto');
 
 class PokerTable {
-    constructor(id, bigBlind = 20) {
+    constructor(id, bigBlind = 20, isPrivate = false, ownerId = null) {
         this.id = id;
         this.players = []; // Array of { id, name, balance, socketId, hand, bet, status, folded, seatIndex }
         this.deck = [];
@@ -17,6 +17,9 @@ class PokerTable {
         this.lastAction = null; // { playerId, type, amount }
         this.deckSeed = crypto.randomBytes(16).toString('hex');
         this.winners = [];
+        this.isPrivate = isPrivate;
+        this.ownerId = ownerId;
+        this.hasStarted = false;
     }
 
     addPlayer(user, socketId, buyIn) {
@@ -65,6 +68,7 @@ class PokerTable {
             if (this.players.length < 2) {
                 this.resetHand();
                 this.gameState = 'waiting';
+                this.hasStarted = false; // Reset started status if player count drops
             }
             return player;
         }
@@ -105,6 +109,7 @@ class PokerTable {
         if (this.players.length < 2) return;
         this.resetHand();
         this.gameState = 'preflop';
+        this.hasStarted = true;
 
         // Move dealer button
         this.dealerIndex = (this.dealerIndex + 1) % this.players.length;
@@ -347,7 +352,10 @@ class PokerTable {
                 isTurn: this.players[this.currentTurnIndex]?.id === p.id
             })),
             lastAction: this.lastAction,
-            winners: this.winners
+            winners: this.winners,
+            isPrivate: this.isPrivate,
+            ownerId: this.ownerId,
+            hasStarted: this.hasStarted
         };
     }
 
@@ -366,10 +374,15 @@ class PokerGameService {
         this.createTable('main-table');
     }
 
-    createTable(id) {
-        const table = new PokerTable(id);
+    createTable(id, isPrivate = false, ownerId = null) {
+        const table = new PokerTable(id, 20, isPrivate, ownerId);
         this.tables.set(id, table);
         return table;
+    }
+
+    createPrivateTable(ownerId) {
+        const id = crypto.randomBytes(3).toString('hex').toUpperCase(); // 6 chars
+        return this.createTable(id, true, ownerId);
     }
 
     getTable(id) {
